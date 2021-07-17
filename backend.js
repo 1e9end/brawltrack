@@ -422,9 +422,11 @@ http.createServer(function(req, res){
     	for (let i = 0; i < clubs.length; ++i){
 			if (pathname == clubs[i]){
 				res.end(clubAPI[i]);
-				break;
+				return;
 			}
 		}
+
+		res.end(clubAPI[0]);
 	}
 
     console.log("Updated HTTP server on path /" + pathname);

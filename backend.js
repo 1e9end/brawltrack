@@ -441,7 +441,7 @@ async function postData(club){
 				console.log(err);
 			}
 
-			axios.post("http://localhost:3000/" + club, JSON.stringify(result))
+			axios.post("https://bb-trophytracker.herokuapp.com/" + club, JSON.stringify(result))
 			.catch(e => {
 				console.log(e);
 			});

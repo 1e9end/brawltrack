@@ -380,7 +380,7 @@ async function fetchMongoData(club){
 */
 
 http.createServer(function(req, res){
-	res.setHeader('Access-Control-Allow-Origin', 'https://1e9end.github.io');
+	res.setHeader('Access-Control-Allow-Origin', 'https://brawltrack.com');
 	// res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Request-Method', '*');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST');

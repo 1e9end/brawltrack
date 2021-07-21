@@ -12,7 +12,6 @@ import socksProxyAgent from "socks-proxy-agent";
 
 const {MongoClient} = mongodb;
 
-const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const tableValues = ["Rank", "Member", "Role", "Trophies", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Raw Gains", "Adjusted Gains" /**, "Ballots"**/];
 
 const clubs = ["BetterBrawlers", "BestBrawlers", "BackupBrawlers", "BabyBrawlers", "BuddyBrawlers", "BrazenBrawlers"];
@@ -191,9 +190,17 @@ function sendMail(members, club, total, clubDetails){
 	let c = "", m = `<table style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">
 	<tr style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
 	
-	let k = ["", clubDetails.name, clubDetails.role, clubDetails.trophies, clubDetails.monday - clubDetails.start, clubDetails.tuesday - clubDetails.monday, 
-		clubDetails.wednesday - clubDetails.tuesday, clubDetails.thursday - clubDetails.wednesday, clubDetails.friday - clubDetails.thursday, clubDetails.saturday - clubDetails.friday, 
-		clubDetails.sunday - clubDetails.saturday, clubDetails.trophies - clubDetails.start, total];
+	let k = ["", clubDetails.name, clubDetails.role, clubDetails.trophies];
+	let last = clubDetails.start;
+	for (let x = 0; x < clubDetails.stats.length; ++x){
+		if (clubDetails.stats[x] == -1){
+			k.push("-")
+			continue;
+		}
+		k.push(clubDetails.stats[x] - last);
+		last = clubDetails.stats[x];
+	}
+	k.push(clubDetails.trophies - clubDetails.start, total);
 
 	for (let i = 0; i < k.length; ++i){
 		m += "<td style=\"border: 1px black solid;padding: 5px; border-collapse: collapse;border-spacing: 5px;\">" + k[i] + "</td>";
@@ -212,8 +219,19 @@ function sendMail(members, club, total, clubDetails){
 	for (let i = 0; i < members.length; ++i){
 		m += `<tr style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
 		let member = members[i];
-		let k = [i + 1, member.name, member.role, member.trophies, member.monday - member.start, member.tuesday - member.monday, 
-		member.wednesday - member.tuesday, member.thursday - member.wednesday, member.friday - member.thursday, member.saturday - member.friday, member.sunday - member.saturday, member.trophies - member.start, member.trophies - member.start + compensation(member.trophies - member.start, member.trophies)/**, tally(member.trophies - member.start, member.trophies)**/];
+		let k = [i + 1, member.name, member.role, member.trophies];
+		let last = member.start;
+		for (let x = 0; x < member.stats.length; ++x){
+			if (member.stats[x] == -1){
+				k.push("-")
+				continue;
+			}
+			k.push(member.stats[x] - last);
+			last = member.stats[x];
+		}
+		k.push(member.trophies - member.start);
+		k.push(member.trophies - member.start + compensation(member.trophies - member.start, member.trophies));
+
 		for (let x = 0; x < k.length; ++x){
 			c += k[x] + ",";
 			m += `<td style=\"border: 1px black solid;padding: 5px; border-collapse: collapse;border-spacing: 5px;\">${k[x]}</td>`;
@@ -274,7 +292,8 @@ async function setMember(member, club, isClub=false){
 					requiredTrophies: member.requiredTrophies,
 					type: member.type,
 					badgeId: member.badgeId,
-					role: member.role
+					role: member.role,
+					stats: member.stats
 				};
 			} else {
 				obj = {
@@ -283,9 +302,10 @@ async function setMember(member, club, isClub=false){
 					role: member.role,
 					nameColor: member.nameColor,
 					icon: member.icon,
+					stats: member.stats
 				};
 			}
-			obj[days[d - 1]] = member.trophies;
+			obj.stats[d - 1] = member.trophies;
 
 			await collection.updateOne(filter, { $set: obj });
 		}
@@ -297,12 +317,13 @@ async function setMember(member, club, isClub=false){
 					tag: member.tag,
 					name: member.name,
 					description: member.description,
+					start: member.trophies,
 					trophies: member.trophies,
 					requiredTrophies: member.requiredTrophies,
 					type: member.type,
 					badgeId: member.badgeId,
 					role: member.role,
-					monday: -1, tuesday: -1, wednesday: -1, thursday: -1, friday: -1, saturday: -1, sunday: -1 
+					stats: []
 				};
 			}
 			else {
@@ -314,12 +335,16 @@ async function setMember(member, club, isClub=false){
 					role: member.role, 
 					nameColor: member.nameColor,
 					icon: member.icon,
-					monday: -1, tuesday: -1, wednesday: -1, thursday: -1, friday: -1, saturday: -1, sunday: -1 
+					stats: []
 				};
 			}
 
-			for (let i = 0; i < d; ++i){
-				obj[days[i]] = member.trophies;
+			for (let i = 0; i < 7; ++i){
+				if (i < d){
+					obj.stats.push(member.trophies);
+					continue;
+				}
+				obj.stats.push(-1);
 			}
 
 			await collection.insertOne(obj);
@@ -503,7 +528,6 @@ async function trophyLeagueReset(club){
 		const db = client.db("BB");
 		let collection = db.collection(club);
 
-		// Sends the email
 		let result = await collection.find({}).toArray();
 		let promiseArray = [];
 		for (let i = 0; i < result.length; ++i){
@@ -513,10 +537,11 @@ async function trophyLeagueReset(club){
 			}
 			let filter = {tag: member.tag};
 			let obj = {
-				start: member.trophies
+				start: member.trophies,
+				stats: member.stats
 			};
 			for (let x = 0; x < d; ++x){
-				obj[days[x]] = member.trophies;
+				obj.stats[x] = member.trophies;
 			}
 			promiseArray.push(collection.updateOne(filter, { $set: obj }));
 			await Promise.all(promiseArray);

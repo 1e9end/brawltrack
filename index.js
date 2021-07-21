@@ -294,14 +294,14 @@ async function setMember(member, club, isClub=false){
 			let obj;
 			if (isClub){
 				obj = {
-					tag: res.tag,
-					name: res.name,
-					description: res.description,
-					trophies: res.trophies,
-					requiredTrophies: res.requiredTrophies,
-					type: res.type,
-					badgeId: res.badgeId,
-					role: res.role,
+					tag: member.tag,
+					name: member.name,
+					description: member.description,
+					trophies: member.trophies,
+					requiredTrophies: member.requiredTrophies,
+					type: member.type,
+					badgeId: member.badgeId,
+					role: member.role,
 					monday: -1, tuesday: -1, wednesday: -1, thursday: -1, friday: -1, saturday: -1, sunday: -1 
 				};
 			}

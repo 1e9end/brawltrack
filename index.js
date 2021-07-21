@@ -293,7 +293,6 @@ async function setMember(member, club, isClub=false){
 					type: member.type,
 					badgeId: member.badgeId,
 					role: member.role,
-					stats: member.stats
 				};
 			} else {
 				obj = {
@@ -302,10 +301,9 @@ async function setMember(member, club, isClub=false){
 					role: member.role,
 					nameColor: member.nameColor,
 					icon: member.icon,
-					stats: member.stats
 				};
 			}
-			obj.stats[d - 1] = member.trophies;
+			obj[`stats.${d - 1}`] = member.trophies;
 
 			await collection.updateOne(filter, { $set: obj });
 		}
@@ -559,7 +557,7 @@ async function trophyLeagueReset(club){
 (async () => {
 	let promiseArray = [];
 	for (let i = 0; i < clubs.length; ++i){
-		promiseArray.push(trophyLeagueReset(clubs[i]));
+		promiseArray.push(func(clubs[i]));
 	}
 
 	await Promise.all(promiseArray);

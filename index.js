@@ -18,7 +18,7 @@ const apiURL = "https://api.brawlstars.com/v1/clubs/%23";
 const clubConfig = [
 	{
 		tag: "28GYUQJ9Q",
-		schedule: '0 */3 * * *',
+		schedule: '0 */4 * * *',
 		token: process.env.QUOTAGUARDSTATIC_TOKEN,
 		proxy: process.env.QUOTAGUARDSTATIC_URL,
 		proxySocks: false,
@@ -32,21 +32,22 @@ const clubConfig = [
 	},
 	{
 		tag: "YQ9JYR2Q",
-		schedule: '2 */6 * * *',
+		schedule: '2 */8 * * *',
 		token: process.env.FIXIE_TOKEN,
 		proxy: process.env.FIXIE_URL,
 		proxySocks: false,
 	},
 	{
 		tag: "2PQLCVJYC",
-		schedule: '3 */6 * * *',
+		schedule: '3 */8 * * *',
 		token: process.env.FIXIE_TOKEN,
 		proxy: process.env.FIXIE_URL,
 		proxySocks: false,
 	},
+	// Partner
 	{
 		tag: "2Q8RLQGJU",
-		schedule: '4 */6 * * *',
+		schedule: '4 */8 * * *',
 		token: process.env.FIXIE_TOKEN,
 		proxy: process.env.FIXIE_URL,
 		proxySocks: false,
@@ -56,6 +57,21 @@ const clubConfig = [
 		schedule: '5 */8 * * *',
 		token: process.env.FIXIE_SOCKS_TOKEN,
 		proxy: process.env.FIXIE_SOCKS_HOST,
+		proxySocks: true,
+	},
+	// Ally
+	{
+		tag: "28YRVG90P",
+		schedule: '6 */12 * * *',
+		token: process.env.QUOTAGUARDSTATIC_TOKEN,
+		proxy: process.env.QUOTAGUARDSTATIC_URL,
+		proxySocks: true,
+	},
+	{
+		tag: "QCUJRG80",
+		schedule: '7 */12 * * *',
+		token: process.env.FIXIE_TOKEN,
+		proxy: process.env.FIXIE_URL,
 		proxySocks: true,
 	},
 ];

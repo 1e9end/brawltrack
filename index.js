@@ -13,53 +13,48 @@ import socksProxyAgent from "socks-proxy-agent";
 const {MongoClient} = mongodb;
 
 const tableValues = ["Rank", "Member", "Role", "Trophies", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Raw Gains", "Adjusted Gains" /**, "Ballots"**/];
+const apiURL = "https://api.brawlstars.com/v1/clubs/%23";
 
 const clubConfig = [
 	{
-		tag: "#28GYUQJ9Q",
+		tag: "28GYUQJ9Q",
 		schedule: '0 */3 * * *',
-		url: process.env.BETTER_BRAWLERS,
-		token: process.env.BETTER_TOKEN,
+		token: process.env.QUOTAGUARDSTATIC_TOKEN,
 		proxy: process.env.QUOTAGUARDSTATIC_URL,
 		proxySocks: false,
 	},
 	{
-		tag: "#C9Y29P8V",
+		tag: "C9Y29P8V",
 		schedule: '1 */6 * * *',
-		url: process.env.BEST_BRAWLERS,
-		token: process.env.BEST_TOKEN,
+		token: process.env.FIXIE_TOKEN,
 		proxy: process.env.FIXIE_URL,
 		proxySocks: false,
 	},
 	{
-		tag: "#YQ9JYR2Q",
+		tag: "YQ9JYR2Q",
 		schedule: '2 */6 * * *',
-		url: process.env.BACKUP_BRAWLERS,
-		token: process.env.BACKUP_TOKEN,
+		token: process.env.FIXIE_TOKEN,
 		proxy: process.env.FIXIE_URL,
 		proxySocks: false,
 	},
 	{
-		tag: "#2PQLCVJYC",
+		tag: "2PQLCVJYC",
 		schedule: '3 */6 * * *',
-		url: process.env.BABY_BRAWLERS,
-		token: process.env.BABY_TOKEN,
+		token: process.env.FIXIE_TOKEN,
 		proxy: process.env.FIXIE_URL,
 		proxySocks: false,
 	},
 	{
-		tag: "#2Q8RLQGJU",
+		tag: "2Q8RLQGJU",
 		schedule: '4 */6 * * *',
-		url: process.env.BUDDY_BRAWLERS,
-		token: process.env.BUDDY_TOKEN,
+		token: process.env.FIXIE_TOKEN,
 		proxy: process.env.FIXIE_URL,
 		proxySocks: false,
 	},
 	{
-		tag: "#2LGP82UGV",
+		tag: "2LGP82UGV",
 		schedule: '5 */8 * * *',
-		url: process.env.BRAZEN_BRAWLERS,
-		token: process.env.BRAZEN_TOKEN,
+		token: process.env.FIXIE_SOCKS_TOKEN,
 		proxy: process.env.FIXIE_SOCKS_HOST,
 		proxySocks: true,
 	},
@@ -167,7 +162,7 @@ http.createServer(function(req, res){
 			}
 
 			for (let i = 0; i < clubConfig.length; ++i){
-				if (pathname == clubConfig[i].tag.substring(1)){
+				if (pathname == clubConfig[i].tag){
 					clubAPI[i] = data;
 					break;
 				}
@@ -178,7 +173,7 @@ http.createServer(function(req, res){
     }
     else{
     	for (let i = 0; i < clubConfig.length; ++i){
-			if (pathname == clubConfig[i].tag.substring(1)){
+			if (pathname == clubConfig[i].tag){
 				res.end(clubAPI[i]);
 				return;
 			}
@@ -367,7 +362,7 @@ async function update(club, proxy, socks=false){
 	let exists = false;
 	for (let i = 0; i < clubConfig.length; ++i){
 		if (club == clubConfig[i].tag){
-			clubUrl = clubConfig[i].url;
+			clubUrl = apiURL + club;
 			token = clubConfig[i].token;
 			exists = true;
 			break;
@@ -499,7 +494,7 @@ async function postData(club){
 		let collection = db.collection(club);
 
 		let result = await collection.find({}).toArray();
-		axios.post("https://bb-trophytracker.herokuapp.com/" + club.substring(1), JSON.stringify(result)).catch(e => {
+		axios.post("https://bb-trophytracker.herokuapp.com/" + club, JSON.stringify(result)).catch(e => {
 			console.log(e);
 		});
 	} catch(e){

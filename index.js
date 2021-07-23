@@ -14,9 +14,9 @@ const {MongoClient} = mongodb;
 
 const tableValues = ["Rank", "Member", "Role", "Trophies", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Raw Gains", "Adjusted Gains" /**, "Ballots"**/];
 
-const clubs = ["BetterBrawlers", "BestBrawlers", "BackupBrawlers", "BabyBrawlers", "BuddyBrawlers", "BrazenBrawlers"];
 const clubConfig = [
 	{
+		tag: "#28GYUQJ9Q",
 		schedule: '0 */3 * * *',
 		url: process.env.BETTER_BRAWLERS,
 		token: process.env.BETTER_TOKEN,
@@ -24,6 +24,7 @@ const clubConfig = [
 		proxySocks: false,
 	},
 	{
+		tag: "#C9Y29P8V",
 		schedule: '1 */6 * * *',
 		url: process.env.BEST_BRAWLERS,
 		token: process.env.BEST_TOKEN,
@@ -31,6 +32,7 @@ const clubConfig = [
 		proxySocks: false,
 	},
 	{
+		tag: "#YQ9JYR2Q",
 		schedule: '2 */6 * * *',
 		url: process.env.BACKUP_BRAWLERS,
 		token: process.env.BACKUP_TOKEN,
@@ -38,6 +40,7 @@ const clubConfig = [
 		proxySocks: false,
 	},
 	{
+		tag: "#2PQLCVJYC",
 		schedule: '3 */6 * * *',
 		url: process.env.BABY_BRAWLERS,
 		token: process.env.BABY_TOKEN,
@@ -45,6 +48,7 @@ const clubConfig = [
 		proxySocks: false,
 	},
 	{
+		tag: "#2Q8RLQGJU",
 		schedule: '4 */6 * * *',
 		url: process.env.BUDDY_BRAWLERS,
 		token: process.env.BUDDY_TOKEN,
@@ -52,6 +56,7 @@ const clubConfig = [
 		proxySocks: false,
 	},
 	{
+		tag: "#2LGP82UGV",
 		schedule: '5 */8 * * *',
 		url: process.env.BRAZEN_BRAWLERS,
 		token: process.env.BRAZEN_TOKEN,
@@ -62,6 +67,7 @@ const clubConfig = [
 
 /**
 	{
+		tag: ,
 		schedule: ,
 		url: ,
 		token: ,
@@ -108,12 +114,12 @@ function whichDay(){
 
 const port = process.env.PORT || 3000;
 
-var clubAPI = new Array(clubs.length);
+var clubAPI = new Array(clubConfig.length);
 
 /** 
 async function fetchMongoData(club){
 	const db = await mongoClient.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true});
-	const dbo = db.db("BB");
+	const dbo = db.db("Brawltrack");
 	const result = dbo.collection(club).find({}).toArray();
 
 	return JSON.stringify(await result);
@@ -121,11 +127,11 @@ async function fetchMongoData(club){
 
 (async ()=>{
 	let clubDBPromise = [];
-	for (let i = 0; i < clubs.length; ++i){
-		clubDBPromise.push(fetchMongoData(clubs[i]));
+	for (let i = 0; i < clubConfig.length; ++i){
+		clubDBPromise.push(fetchMongoData(clubConfig[i].tag));
 	}
 	let clubDB = await Promise.resolve(clubDBPromise);
-	for (let i = 0; i < clubs.length; ++i){
+	for (let i = 0; i < clubConfig.length; ++i){
 		clubAPI[i] = clubDB[i];
 	}
 })();
@@ -143,7 +149,7 @@ http.createServer(function(req, res){
   	let {pathname} = new URL(req.url, baseURL);
 	pathname = pathname.substring(1);
 
-    if (req.method === "POST") {
+	if (req.method === "POST") {
 		let data = "";
 		req.on('data', (chunk) => {
 			data += chunk.toString();
@@ -160,8 +166,8 @@ http.createServer(function(req, res){
 				console.log(data);
 			}
 
-			for (let i = 0; i < clubs.length; ++i){
-				if (pathname == clubs[i]){
+			for (let i = 0; i < clubConfig.length; ++i){
+				if (pathname == clubConfig[i].tag.substring(1)){
 					clubAPI[i] = data;
 					break;
 				}
@@ -171,8 +177,8 @@ http.createServer(function(req, res){
 		});
     }
     else{
-    	for (let i = 0; i < clubs.length; ++i){
-			if (pathname == clubs[i]){
+    	for (let i = 0; i < clubConfig.length; ++i){
+			if (pathname == clubConfig[i].tag.substring(1)){
 				res.end(clubAPI[i]);
 				return;
 			}
@@ -250,7 +256,7 @@ function sendMail(members, club, total, clubDetails){
 	});
 
 	let mailDetails = {
-		from: `BB Bot <${process.env.EMAIL}>`,
+		from: `Brawltrack Bot <${process.env.EMAIL}>`,
 		bcc: process.env.RECIEVERS,
 		subject: "Weekly Trophy Pushing Results - " + club,
 		// text: "",
@@ -276,7 +282,7 @@ async function setMember(member, club, isClub=false){
 	let d = whichDay();
 	
 	try {
-		const db = client.db("BB");
+		const db = client.db("Brawltrack");
 		let collection = db.collection(club);
 
 		let id = member.tag;
@@ -356,12 +362,12 @@ async function setMember(member, club, isClub=false){
 
 async function update(club, proxy, socks=false){
 	let proxyAgent = socks ? new socksProxyAgent(proxy): new httpsProxyAgent(proxy);
-	let clubTag, token;
+	let clubUrl, token;
 
 	let exists = false;
-	for (let i = 0; i < clubs.length; ++i){
-		if (club == clubs[i]){
-			clubTag = clubConfig[i].url;
+	for (let i = 0; i < clubConfig.length; ++i){
+		if (club == clubConfig[i].tag){
+			clubUrl = clubConfig[i].url;
 			token = clubConfig[i].token;
 			exists = true;
 			break;
@@ -373,7 +379,7 @@ async function update(club, proxy, socks=false){
 		return;
 	}
 
-	fetch(clubTag, {
+	fetch(clubUrl, {
 		agent: proxyAgent,
 		method: "GET",
 		headers: {
@@ -432,7 +438,7 @@ async function reset(club){
 	if (!client) {return;}
 	
 	try {
-		const db = client.db("BB");
+		const db = client.db("Brawltrack");
 		let collection = db.collection(club);
 
 		let result = await collection.find({}).toArray();
@@ -470,7 +476,7 @@ async function deleteResults(club){
 	if (!client) {return;}
 	
 	try {
-		const db = client.db("BB");
+		const db = client.db("Brawltrack");
 		let collection = db.collection(club);
 
 		await collection.deleteMany({});
@@ -489,11 +495,11 @@ async function postData(club){
 	if (!client) {return;}
 	
 	try {
-		const db = client.db("BB");
+		const db = client.db("Brawltrack");
 		let collection = db.collection(club);
 
 		let result = await collection.find({}).toArray();
-		axios.post("https://bb-trophytracker.herokuapp.com/" + club, JSON.stringify(result)).catch(e => {
+		axios.post("https://bb-trophytracker.herokuapp.com/" + club.substring(1), JSON.stringify(result)).catch(e => {
 			console.log(e);
 		});
 	} catch(e){
@@ -505,8 +511,8 @@ async function postData(club){
 
 (async ()=> {
 	let promiseArray = [];
-	for (let i = 0; i < clubs.length; ++i){
-		promiseArray.push(postData(clubs[i]));
+	for (let i = 0; i < clubConfig.length; ++i){
+		promiseArray.push(postData(clubConfig[i].tag));
 	}
 
 	await Promise.all(promiseArray);
@@ -523,7 +529,7 @@ async function trophyLeagueReset(club){
 	if (!client) {return;}
 	
 	try {
-		const db = client.db("BB");
+		const db = client.db("Brawltrack");
 		let collection = db.collection(club);
 
 		let result = await collection.find({}).toArray();
@@ -556,8 +562,8 @@ async function trophyLeagueReset(club){
 /**
 (async () => {
 	let promiseArray = [];
-	for (let i = 0; i < clubs.length; ++i){
-		promiseArray.push(func(clubs[i]));
+	for (let i = 0; i < clubConfig.length; ++i){
+		promiseArray.push(func(clubConfig[i].tag));
 	}
 
 	await Promise.all(promiseArray);
@@ -565,16 +571,16 @@ async function trophyLeagueReset(club){
 **/
 
 /** Normal Updates **/
-for (let i = 0; i < clubs.length; ++i){
+for (let i = 0; i < clubConfig.length; ++i){
 	cron.schedule(clubConfig[i].schedule, async ()=>{
-		await update(clubs[i], clubConfig[i].proxy, clubConfig[i].proxySocks);
+		await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks);
 	});
 }
 
 cron.schedule('6 */1 * * *', async ()=>{
 	let promiseArray = [];
-	for (let i = 0; i < clubs.length; ++i){
-		promiseArray.push(postData(clubs[i]));
+	for (let i = 0; i < clubConfig.length; ++i){
+		promiseArray.push(postData(clubConfig[i].tag));
 	}
 
 	await Promise.all(promiseArray);
@@ -582,8 +588,8 @@ cron.schedule('6 */1 * * *', async ()=>{
 
 cron.schedule('50 23 * * SUN', async ()=>{
 	let promiseArray = [];
-	for (let i = 0; i < clubs.length; ++i){
-		promiseArray.push(update(clubs[i], clubConfig[i].proxy, clubConfig[i].proxySocks));
+	for (let i = 0; i < clubConfig.length; ++i){
+		promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks));
 	}
 
 	await Promise.all(promiseArray);
@@ -591,8 +597,8 @@ cron.schedule('50 23 * * SUN', async ()=>{
 
 cron.schedule('55 23 * * SUN', async ()=>{
 	let promiseArray = [];
-	for (let i = 0; i < clubs.length; ++i){
-		promiseArray.push(reset(clubs[i]));
+	for (let i = 0; i < clubConfig.length; ++i){
+		promiseArray.push(reset(clubConfig[i].tag));
 	}
 
 	await Promise.all(promiseArray);
@@ -600,8 +606,8 @@ cron.schedule('55 23 * * SUN', async ()=>{
 
 cron.schedule('58 23 * * SUN', async ()=>{
 	let promiseArray = [];
-	for (let i = 0; i < clubs.length; ++i){
-		promiseArray.push(deleteResults(clubs[i]));
+	for (let i = 0; i < clubConfig.length; ++i){
+		promiseArray.push(deleteResults(clubConfig[i].tag));
 	}
 
 	await Promise.all(promiseArray);

@@ -283,6 +283,36 @@ function sendMail(members, club, total, clubDetails){
 	});
 }
 
+async function postData(club){
+	const client = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
+		console.log(err);
+	});
+	if (!client) {return;}
+	
+	try {
+		const db = client.db("Brawltrack");
+		let collection = db.collection(club);
+
+		let result = await collection.find({}).toArray();
+		axios.post("https://bb-trophytracker.herokuapp.com/" + club, JSON.stringify(result)).catch(e => {
+			console.log(e);
+		});
+	} catch(e){
+		console.log("ERROR (postData): " + e);
+	} finally {
+		await client.close();
+	}
+}
+
+(async ()=> {
+	let promiseArray = [];
+	for (let i = 0; i < clubConfig.length; ++i){
+		promiseArray.push(postData(clubConfig[i].tag));
+	}
+
+	await Promise.all(promiseArray);
+})();
+
 async function setMember(member, club, isClub=false){
 	const client = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
 		console.log(err);
@@ -437,6 +467,8 @@ async function update(club, proxy, socks=false){
 		} finally {
 			console.log("Updated members for " + club);
 		}
+
+		postData(club);
 	}).catch(e => {
 		console.log(e);
 	});
@@ -499,36 +531,6 @@ async function deleteResults(club){
 	}
 }
 
-async function postData(club){
-	const client = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
-		console.log(err);
-	});
-	if (!client) {return;}
-	
-	try {
-		const db = client.db("Brawltrack");
-		let collection = db.collection(club);
-
-		let result = await collection.find({}).toArray();
-		axios.post("https://bb-trophytracker.herokuapp.com/" + club, JSON.stringify(result)).catch(e => {
-			console.log(e);
-		});
-	} catch(e){
-		console.log("ERROR (postData): " + e);
-	} finally {
-		await client.close();
-	}
-}
-
-(async ()=> {
-	let promiseArray = [];
-	for (let i = 0; i < clubConfig.length; ++i){
-		promiseArray.push(postData(clubConfig[i].tag));
-	}
-
-	await Promise.all(promiseArray);
-})();
-
 async function trophyLeagueReset(club){
 	let d = new Date().getDay();
 	if (d == 0){
@@ -587,15 +589,6 @@ for (let i = 0; i < clubConfig.length; ++i){
 		await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks);
 	});
 }
-
-cron.schedule('6 */1 * * *', async ()=>{
-	let promiseArray = [];
-	for (let i = 0; i < clubConfig.length; ++i){
-		promiseArray.push(postData(clubConfig[i].tag));
-	}
-
-	await Promise.all(promiseArray);
-});
 
 cron.schedule('50 23 * * SUN', async ()=>{
 	let promiseArray = [];

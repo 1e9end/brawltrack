@@ -65,14 +65,14 @@ const clubConfig = [
 		schedule: '6 */12 * * *',
 		token: process.env.QUOTAGUARDSTATIC_TOKEN,
 		proxy: process.env.QUOTAGUARDSTATIC_URL,
-		proxySocks: true,
+		proxySocks: false,
 	},
 	{
 		tag: "QCUJRG80",
 		schedule: '7 */12 * * *',
 		token: process.env.FIXIE_TOKEN,
 		proxy: process.env.FIXIE_URL,
-		proxySocks: true,
+		proxySocks: false,
 	},
 ];
 

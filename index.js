@@ -442,7 +442,7 @@ async function update(club, proxy, socks=false){
 			Authorization: "Bearer " + token,
 			"Content-Type": "application/json"
 		}
-	}).then(res => res.json()).then(res => {
+	}).then(res => res.json()).then(async (res) =>  {
 		let clubInfo = [];
 		let members = res.members;
 

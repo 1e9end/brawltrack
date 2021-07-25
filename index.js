@@ -447,7 +447,7 @@ async function update(club, proxy, socks=false){
 		let members = res.members;
 
 		// Transform object property names to strings for JSON
-		for (i = 0; i < members.length; ++i){
+		for (let i = 0; i < members.length; ++i){
 			let x = members[i];
 			clubInfo.push({
 				'tag': x.tag,

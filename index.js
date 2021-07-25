@@ -313,7 +313,7 @@ async function postData(club){
 	await Promise.all(promiseArray);
 })();
 
-async function setMember(member, club, isClub=false){
+async function setMembers(members, club){
 	const client = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
 		console.log(err);
 	});
@@ -326,76 +326,91 @@ async function setMember(member, club, isClub=false){
 		const db = client.db("Brawltrack");
 		let collection = db.collection(club);
 
-		let id = member.tag;
-		let filter = { tag: id };
+		let promiseArray = [];
+		let memberExistPromise = [];
 
-		if(await collection.countDocuments(filter, {limit: 1})){
-			// Member already set
-			let obj;
-			if (isClub){
-				obj = {
-					description: member.description,
-					trophies: member.trophies,
-					requiredTrophies: member.requiredTrophies,
-					type: member.type,
-					badgeId: member.badgeId,
-					role: member.role,
-				};
-			} else {
-				obj = {
-					name: member.name,
-					trophies: member.trophies,
-					role: member.role,
-					nameColor: member.nameColor,
-					icon: member.icon,
-				};
-			}
-			obj[`stats.${d - 1}`] = member.trophies;
-
-			await collection.updateOne(filter, { $set: obj });
+		for (let i = 0; i < members.length; ++i){
+			let member = members[i];
+			memberExistPromise.push(collection.countDocuments({tag: member.tag}, {limit: 1}));
 		}
-		else{
-			// Create Member Document
-			let obj;
-			if (isClub){
-				obj = {
-					tag: member.tag,
-					name: member.name,
-					description: member.description,
-					start: member.trophies,
-					trophies: member.trophies,
-					requiredTrophies: member.requiredTrophies,
-					type: member.type,
-					badgeId: member.badgeId,
-					role: member.role,
-					stats: []
-				};
-			}
-			else {
-				obj = {
-					tag: id, 
-					name: member.name, 
-					start: member.trophies, 
-					trophies: member.trophies, 
-					role: member.role, 
-					nameColor: member.nameColor,
-					icon: member.icon,
-					stats: []
-				};
-			}
 
-			for (let i = 0; i < 7; ++i){
-				if (i < d){
-					obj.stats.push(member.trophies);
-					continue;
+		let memberExist = await Promise.all(memberExistPromise);
+
+		for (let i = 0; i < members.length; ++i){
+			let member = members[i];
+			let filter = {tag: member.tag};
+			let isClub = member.role == "CLUB";
+
+			if(memberExist[i]){
+				// Member already set
+				let obj;
+				if (isClub){
+					obj = {
+						description: member.description,
+						trophies: member.trophies,
+						requiredTrophies: member.requiredTrophies,
+						type: member.type,
+						badgeId: member.badgeId,
+						role: member.role,
+					};
+				} else {
+					obj = {
+						name: member.name,
+						trophies: member.trophies,
+						role: member.role,
+						nameColor: member.nameColor,
+						icon: member.icon,
+					};
 				}
-				obj.stats.push(-1);
-			}
+				obj[`stats.${d - 1}`] = member.trophies;
 
-			await collection.insertOne(obj);
+				promiseArray.push(collection.updateOne(filter, { $set: obj }));
+			}
+			else{
+				// Create Member Document
+				let obj;
+				if (isClub){
+					obj = {
+						tag: member.tag,
+						name: member.name,
+						description: member.description,
+						start: member.trophies,
+						trophies: member.trophies,
+						requiredTrophies: member.requiredTrophies,
+						type: member.type,
+						badgeId: member.badgeId,
+						role: member.role,
+						stats: []
+					};
+				}
+				else {
+					obj = {
+						tag: id, 
+						name: member.name, 
+						start: member.trophies, 
+						trophies: member.trophies, 
+						role: member.role, 
+						nameColor: member.nameColor,
+						icon: member.icon,
+						stats: []
+					};
+				}
+
+				for (let i = 0; i < 7; ++i){
+					if (i < d){
+						obj.stats.push(member.trophies);
+						continue;
+					}
+					obj.stats.push(-1);
+				}
+
+				promiseArray.push(collection.insertOne(obj));
+			}
 		}
+
+		await Promise.all(promiseArray);
 	} catch(e){
-		console.log("ERROR (setMember): " + e);
+		console.log("ERROR (setMembers): " + e);
 	} finally {
 		await client.close();
 	}
@@ -444,12 +459,6 @@ async function update(club, proxy, socks=false){
 			});
 		}
 
-		let promiseArray = [];
-		// Update MongoDB Database
-		for (var i = 0; i < clubInfo.length; ++i){
-			promiseArray.push(setMember(clubInfo[i], club));
-		}
-
 		let clubData = {
 			'tag': res.tag,
 			'name': res.name,
@@ -461,9 +470,9 @@ async function update(club, proxy, socks=false){
 			'role': "CLUB"
 		};
 
-		promiseArray.push(setMember(clubData, club, true));
+		clubInfo.push(clubData);
 		try {
-			Promise.all(promiseArray);
+	 		await setMembers(clubInfo, club);
 		} finally {
 			console.log("Updated members for " + club);
 		}

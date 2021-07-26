@@ -385,7 +385,7 @@ async function setMembers(members, club){
 				}
 				else {
 					obj = {
-						tag: id, 
+						tag: member.tag, 
 						name: member.name, 
 						start: member.trophies, 
 						trophies: member.trophies, 

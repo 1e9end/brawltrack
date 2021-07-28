@@ -1,18 +1,24 @@
 import dotenv from "dotenv";
 dotenv.config();
-import fetch from "node-fetch";
-import http from "http";
-import url from "url";
+import path from "path";
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+import fs from "fs";
+import ejs from "ejs";
+import express from "express";
 import mongodb from "mongodb";
+import fetch from "node-fetch";
+import axios from "axios";
 import nodemailer from "nodemailer";
 import cron from "node-cron";
-import axios from "axios";
 import httpsProxyAgent from "https-proxy-agent";
 import socksProxyAgent from "socks-proxy-agent";
 
+var app = express();
 const {MongoClient} = mongodb;
 
-const tableValues = ["Rank", "Member", "Role", "Trophies", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Raw Gains", "Adjusted Gains" /**, "Ballots"**/];
+const tableValues = ["Rank", "Member", "Role", "Trophies", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Raw Gains", "Adjusted Gains"];
 const apiURL = "https://api.brawlstars.com/v1/clubs/%23";
 
 const clubConfig = [
@@ -76,17 +82,6 @@ const clubConfig = [
 	},
 ];
 
-/**
-	{
-		tag: ,
-		schedule: ,
-		url: ,
-		token: ,
-		proxy: ,
-		proxySocks: false,
-	},
- */
-
 function compensation(gains, trophies){
 	return gains > 0 ? Math.floor(trophies/1000) * 25:0;
 }
@@ -123,87 +118,92 @@ function whichDay(){
 	return d.getDay();
 }
 
+function parseMember(member){
+	let r;
+	switch(member.role){
+		case "member":
+			r = "Member";
+		break;
+		case "senior":
+			r = "Senior";
+		break;
+		case "vicePresident":
+			r = "Vice President";
+		break;
+		case "president":
+			r = "President";
+		break;
+		case "CLUB":
+			r = "Club";
+	}
+	let ans = {
+		name: member.name,
+		role: r,
+		start: member.start,
+		trophies: member.trophies,
+		stats: [],
+		raw: member.trophies - member.start,
+		total: member.trophies - member.start + compensation(member.trophies - member.start, member.trophies),
+		icon: member.icon,
+		color: member.nameColor,
+	};
+
+	let last = member.start;
+	for (let i = 0; i < member.stats.length; ++i){
+		let v = member.stats[i];
+		if (v == -1){
+			ans.stats.push("TBD");
+			continue;
+		}
+
+		ans.stats.push(v - last);
+		last = v;
+	}
+
+	return ans;
+}
+
 const port = process.env.PORT || 3000;
 
 var clubAPI = new Array(clubConfig.length);
 
-/** 
-async function fetchMongoData(club){
-	const db = await mongoClient.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true});
-	const dbo = db.db("Brawltrack");
-	const result = dbo.collection(club).find({}).toArray();
+app.use(express.static("public"));
+app.set('view engine', 'ejs');
 
-	return JSON.stringify(await result);
-}
+app.locals = {
+	memberStat: function(c, text){
+		let template = fs.readFileSync('./public/functions/memberStat.ejs', 'utf-8');
+		return ejs.render(template, {c: c, text: text});
+	},
+};
 
-(async ()=>{
-	let clubDBPromise = [];
+app.get('/', (req, res) => {
+	res.render('pages/index');
+});
+
+app.get('/about', (req, res) => {
+	res.render('pages/about');
+});
+
+app.get('/club/:club', async (req, res) => {
+	let {club} = req.params;
 	for (let i = 0; i < clubConfig.length; ++i){
-		clubDBPromise.push(fetchMongoData(clubConfig[i].tag));
-	}
-	let clubDB = await Promise.resolve(clubDBPromise);
-	for (let i = 0; i < clubConfig.length; ++i){
-		clubAPI[i] = clubDB[i];
-	}
-})();
-*/
-
-http.createServer(function(req, res){
-	// res.setHeader('Access-Control-Allow-Origin', 'https://brawltrack.com');
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Request-Method', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-	res.setHeader('Access-Control-Allow-Headers', '*');
-    res.setHeader('Content-Type', 'application/json');
-    
-	const baseURL = 'http://' + req.headers.host + '/';
-  	let {pathname} = new URL(req.url, baseURL);
-	pathname = pathname.substring(1);
-
-	if (req.method === "POST") {
-		let data = "";
-		req.on('data', (chunk) => {
-			data += chunk.toString();
-			// DDoS Protection
-			if (data.length > 1e6){
-				console.log(`WARNING: Recieved giant data POST`);
-				req.socket.destroy();
-			}
-		});
-
-		req.on('end', () => {
-			if (data[0] != '[' || data[data.length - 1] != ']'){
-				console.log("ERROR: Clipped POST data:\n");
-				console.log(data);
-			}
-
-			for (let i = 0; i < clubConfig.length; ++i){
-				if (pathname == clubConfig[i].tag){
-					clubAPI[i] = data;
-					break;
-				}
-			}
-
-			res.end(data);
-		});
-    }
-    else{
-    	for (let i = 0; i < clubConfig.length; ++i){
-			if (pathname == clubConfig[i].tag){
-				res.end(clubAPI[i]);
-				return;
-			}
+		if (club == clubConfig[i].tag){
+			res.render('pages/club', {club: clubAPI[i].club, members: clubAPI[i].members});
+			return;
 		}
-
-		res.end(clubAPI[0]);
 	}
-}).listen(port);
 
-// Mail results to admins
+	res.end(`No club with tag #${club} found`);
+});
+
+app.get('*', function(req, res) {
+    res.redirect('/');
+});
+
+app.listen(port);
+
 function sendMail(members, club, total, clubDetails){
-	// var time = new Date();
-	// As of (MM/DD/YYYY) ${time.getMonth() + 1}/${time.getDate()}/${time.getFullYear()}   ${time.getHours()}:${time.getMinutes() < 10 ? "0" + time.getMinutes(): time.getMinutes()}, timezone: ${process.env.TZ ?? "UTC"}
-	
 	let c = "", m = `<table style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">
 	<tr style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
 	
@@ -288,16 +288,37 @@ async function postData(club){
 		console.log(err);
 	});
 	if (!client) {return;}
-	
 	try {
 		const db = client.db("Brawltrack");
 		let collection = db.collection(club);
 
-		let result = await collection.find({}).toArray();
-		axios.post("https://bb-trophytracker.herokuapp.com/" + club, JSON.stringify(result)).catch(e => {
-			console.log(e);
+		let members = await collection.find({}).toArray();
+		let c;
+		for (let i = 0; i < members.length; ++i){
+			if (members[i].role == "CLUB"){
+				c = members[i];
+				members.splice(i, 1);
+				--i;
+				continue;
+			}
+
+			members[i] = parseMember(members[i]);
+		}
+
+		members.sort((a, b) => {
+			return b.total - a.total;
 		});
-	} catch(e){
+
+		for (let i = 0; i < clubConfig.length; ++i){
+			if (club == clubConfig[i].tag){
+				clubAPI[i] = {
+					club: c,
+					members: members
+				};
+				break;
+			}
+		}
+	} catch(e) {
 		console.log("ERROR (postData): " + e);
 	} finally {
 		await client.close();
@@ -585,43 +606,45 @@ async function trophyLeagueReset(club){
 (async () => {
 	let promiseArray = [];
 	for (let i = 0; i < clubConfig.length; ++i){
-		promiseArray.push(func(clubConfig[i].tag));
+		promiseArray.push(trophyLeagueReset(clubConfig[i].tag));
 	}
 
 	await Promise.all(promiseArray);
 })();
 **/
 
-/** Normal Updates **/
-for (let i = 0; i < clubConfig.length; ++i){
-	cron.schedule(clubConfig[i].schedule, async ()=>{
-		await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks);
+if (process.env.PRODUCTION === "true"){
+	/** Normal Updates **/
+	for (let i = 0; i < clubConfig.length; ++i){
+		cron.schedule(clubConfig[i].schedule, async ()=>{
+			await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks);
+		});
+	}
+
+	cron.schedule('50 23 * * SUN', async ()=>{
+		let promiseArray = [];
+		for (let i = 0; i < clubConfig.length; ++i){
+			promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks));
+		}
+
+		await Promise.all(promiseArray);
+	});
+
+	cron.schedule('55 23 * * SUN', async ()=>{
+		let promiseArray = [];
+		for (let i = 0; i < clubConfig.length; ++i){
+			promiseArray.push(reset(clubConfig[i].tag));
+		}
+
+		await Promise.all(promiseArray);
+	});
+
+	cron.schedule('58 23 * * SUN', async ()=>{
+		let promiseArray = [];
+		for (let i = 0; i < clubConfig.length; ++i){
+			promiseArray.push(deleteResults(clubConfig[i].tag));
+		}
+
+		await Promise.all(promiseArray);
 	});
 }
-
-cron.schedule('50 23 * * SUN', async ()=>{
-	let promiseArray = [];
-	for (let i = 0; i < clubConfig.length; ++i){
-		promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks));
-	}
-
-	await Promise.all(promiseArray);
-});
-
-cron.schedule('55 23 * * SUN', async ()=>{
-	let promiseArray = [];
-	for (let i = 0; i < clubConfig.length; ++i){
-		promiseArray.push(reset(clubConfig[i].tag));
-	}
-
-	await Promise.all(promiseArray);
-});
-
-cron.schedule('58 23 * * SUN', async ()=>{
-	let promiseArray = [];
-	for (let i = 0; i < clubConfig.length; ++i){
-		promiseArray.push(deleteResults(clubConfig[i].tag));
-	}
-
-	await Promise.all(promiseArray);
-});

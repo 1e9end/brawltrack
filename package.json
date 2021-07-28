@@ -1,7 +1,7 @@
 {
-  "name": "BB",
+  "name": "Brawltrack",
   "version": "1.0.0",
-  "description": "",
+  "description": "BrawlTrack is a Brawl Stars trophy gains tracker and ranking system that motivates members and club growth. It also serves as a tool to guide impactful promotion decisions to give you confidence that your top contributors are leading your club forward all the way to the top!",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "dotenv": "^8.2.0",
+    "ejs": "^3.1.6",
     "express": "^4.17.1",
     "https-proxy-agent": "^5.0.0",
     "mongodb": "^3.6.4",

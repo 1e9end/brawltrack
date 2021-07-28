@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head.ejs') %>
+</head>
+<body>
+    <%- include('../partials/navbar.ejs') %>
+    <div id="content">
+        <div id = "club-wrapper">
+            <div id = "club-about">
+                <img id = "club-badge" src="https://cdn.brawlify.com/club/<%=club.badgeId%>.png"/>
+                <div id = "club-name-wrapper">
+                    <div id = "club-name">
+                        <%=club.name%>
+                    </div>
+                    <div id = "club-tag">
+                        <%=club.tag%>
+                    </div>
+                </div>
+            </div>
+            <div class = "club-details" id = "club-description">
+                <%=club.description%>
+            </div>
+            <div id = "club-join-details">
+                <div class = "club-details">
+                    REQUIRED<br>
+                    <span id = "club-required-trophies"><%=club.requiredTrophies%></span>
+                </div>
+                <div class = "club-details">
+                    TYPE<br>
+                    <span id = "club-type"><%=club.type.split(/(?=[A-Z])/).join(" ").toUpperCase()%></span>
+                </div>
+            </div>
+        </div>
+        <div id = "leaderboard-wrapper">
+            <div id = "leaderboard-header">
+                <div class = "header-rank">
+                    #
+                </div>
+                <div class = "header-name-wrapper">
+                    <span class = "header-name">MEMBER</span>
+                </div>
+                <div class = "header-stats">
+                    <span>TROPHIES</span>
+                </div>
+                <div class = "header-stats">
+                    <span>MON</span>
+                </div>
+                <div class = "header-stats">
+                    <span>TUE</span>
+                </div>
+                <div class = "header-stats">
+                    <span>WED</span>
+                </div>
+                <div class = "header-stats">
+                    <span>THU</span>
+                </div>
+                <div class = "header-stats">
+                    <span>FRI</span>
+                </div>
+                <div class = "header-stats">
+                    <span>SAT</span>
+                </div>
+                <div class = "header-stats">
+                    <span>SUN</span>
+                </div>
+                <div class = "header-stats">
+                    <span>RAW</span>
+                </div>
+                <div class = "header-stats">
+                    <span>ADJ</span>
+                </div>
+            </div>
+            <div id = "leaderboard">
+                <%  for (var i = 0; i < members.length; ++i){ 
+                    var member = members[i]; %>
+                    <div class = "member">
+                        <%- memberStat("member-rank", i + 1); %>
+                        <div class = "member-icon-wrapper"><img class = "member-icon" src = "https://cdn.brawlify.com/profile/<%=member.icon%>.png"></div>
+                        <div class = "member-name-wrapper">
+                            <div class = "member-name" style = "color: #<%= member.color.substring(4) %>">
+                                <span><%= member.name %></span>
+                            </div>
+                            <%- memberStat("member-role", member.role); %>
+                        </div>
+                        <%- memberStat("member-stats", member.trophies); %>
+                        <% for (var x = 0; x < member.stats.length; ++x){ %>
+                            <%- memberStat("member-stats", member.stats[x]); %>
+                        <% } %>
+                        
+                        <%- memberStat("member-stats", member.raw); %>
+                        <%- memberStat("member-stats", member.total); %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+body{
+    overflow-x: hidden;
+    background-color: #3b353b;
+    font-family: 'Lilita One', sans-serif;
+    margin: 0;
+}
+#header{
+    background: #000;
+    color: white;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: clamp(60px, 8vh, 100px);
+    z-index: 100;
+}
+#logo {
+    font-size: 1.5em;
+    float: left;
+}
+#sidenav-toggle {
+    float: left;
+    width: 25px;
+    height: 20px;
+    margin: 0 50px 0 15px;
+    transition: 0.3s;
+}
+#sidenav-toggle:hover{
+    opacity: 90%;
+}
+#sidenav-toggle > .line {
+    background-color: #FFF;
+    border-radius: 5px;
+    height: 4px;
+    display: block;
+    width: 100%;
+}
+#sidenav-toggle > .line + .line {
+    margin-top: 4px;
+}
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: clamp(60px, 8vh, 100px);
+    left: 0;
+    background-color: #111; 
+    overflow-x: hidden;
+    padding-top: 30px;
+    transition: 0.5s;
+}
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+.sidenav a:hover {
+    color: #f1f1f1;
+}
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+} 
+#content {
+    margin-top: calc(50px + clamp(60px, 8vh, 100px));
+}
+#club-selector {
+    margin-right: 30px;
+    float: right;
+}
+.v-center{
+    display: block;
+    position: relative; 
+    top: 50%; 
+    -ms-transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+}

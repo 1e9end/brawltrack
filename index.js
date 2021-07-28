@@ -178,7 +178,7 @@ app.locals = {
 };
 
 app.get('/', (req, res) => {
-	res.render('pages/index');
+	res.render('pages/club', {club: clubAPI[0].club, members: clubAPI[0].members});
 });
 
 app.get('/about', (req, res) => {

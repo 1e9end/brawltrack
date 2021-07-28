@@ -12,7 +12,7 @@ function toggleNav() {
 
 function changeClub(){
 	let tag = document.getElementById("club-selector-tag").value;
-	window.location.replace("https://bb-trophytracker.herokuapp.com/club/" + tag);
+	window.location.replace("http://www.brawltrack.com/club/" + tag);
 }
 
 window.addEventListener('resize', event => {

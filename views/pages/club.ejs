@@ -9,7 +9,7 @@
     <div id="content">
         <div id = "club-wrapper">
             <div id = "club-about">
-                <img id = "club-badge" src="https://cdn.brawlify.com/club/<%=club.badgeId%>.png"/>
+                <img id = "club-badge" src="https://cdn.brawltrack.com/club/<%=club.badgeId%>.png"/>
                 <div id = "club-name-wrapper">
                     <div id = "club-name">
                         <%=club.name%>
@@ -77,7 +77,7 @@
                     var member = members[i]; %>
                     <div class = "member">
                         <%- memberStat("member-rank", i + 1); %>
-                        <div class = "member-icon-wrapper"><img class = "member-icon" src = "https://cdn.brawlify.com/profile/<%=member.icon%>.png"></div>
+                        <div class = "member-icon-wrapper"><img class = "member-icon" src = "https://cdn.brawltrack.com/profile/<%=member.icon%>.png"></div>
                         <div class = "member-name-wrapper">
                             <div class = "member-name" style = "color: #<%= member.color.substring(4) %>">
                                 <span><%= member.name %></span>

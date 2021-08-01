@@ -603,14 +603,14 @@ if (process.env.PRODUCTION === "true"){
 	/** Normal Updates **/
 	for (let i in clubConfig){
 		cron.schedule(clubConfig[i].schedule, async ()=>{
-			await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? true);
+			await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? false);
 		});
 	}
 
 	cron.schedule('50 23 * * SUN', async ()=>{
 		let promiseArray = [];
 		for (let i in clubConfig){
-			promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? true));
+			promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? false));
 		}
 
 		await Promise.all(promiseArray);

@@ -21,66 +21,8 @@ const {MongoClient} = mongodb;
 const tableValues = ["Rank", "Member", "Role", "Trophies", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Raw Gains", "Adjusted Gains"];
 const apiURL = "https://api.brawlstars.com/v1/clubs/%23";
 
-const clubConfig = [
-	{
-		tag: "28GYUQJ9Q",
-		schedule: '0 */4 * * *',
-		token: process.env.QUOTAGUARDSTATIC_TOKEN,
-		proxy: process.env.QUOTAGUARDSTATIC_URL,
-		proxySocks: false,
-	},
-	{
-		tag: "C9Y29P8V",
-		schedule: '1 */6 * * *',
-		token: process.env.FIXIE_TOKEN,
-		proxy: process.env.FIXIE_URL,
-		proxySocks: false,
-	},
-	{
-		tag: "YQ9JYR2Q",
-		schedule: '2 */8 * * *',
-		token: process.env.FIXIE_TOKEN,
-		proxy: process.env.FIXIE_URL,
-		proxySocks: false,
-	},
-	{
-		tag: "2PQLCVJYC",
-		schedule: '3 */8 * * *',
-		token: process.env.FIXIE_TOKEN,
-		proxy: process.env.FIXIE_URL,
-		proxySocks: false,
-	},
-	// Partner
-	{
-		tag: "2Q8RLQGJU",
-		schedule: '4 */8 * * *',
-		token: process.env.FIXIE_TOKEN,
-		proxy: process.env.FIXIE_URL,
-		proxySocks: false,
-	},
-	{
-		tag: "2LGP82UGV",
-		schedule: '5 */8 * * *',
-		token: process.env.FIXIE_SOCKS_TOKEN,
-		proxy: process.env.FIXIE_SOCKS_HOST,
-		proxySocks: true,
-	},
-	// Ally
-	{
-		tag: "28YRVG90P",
-		schedule: '6 */12 * * *',
-		token: process.env.QUOTAGUARDSTATIC_TOKEN,
-		proxy: process.env.QUOTAGUARDSTATIC_URL,
-		proxySocks: false,
-	},
-	{
-		tag: "QCUJRG80",
-		schedule: '7 */12 * * *',
-		token: process.env.FIXIE_TOKEN,
-		proxy: process.env.FIXIE_URL,
-		proxySocks: false,
-	},
-];
+import clubConfig from "./clubConfig.mjs";
+import orgConfig from "./orgConfig.mjs";
 
 function compensation(gains, trophies){
 	return gains > 0 ? Math.floor(trophies/1000) * 25:0;
@@ -117,6 +59,14 @@ function whichDay(){
 	d.setHours(d.getHours() - 1);
 	return d.getDay();
 }
+
+function whichWeek(){
+	let now = new Date(2021, 7, 16, 8, 0, 0);
+	let anchorDate = new Date(Date.UTC(2021, 6, 26, 8, 0, 0));
+	return Math.floor(((now - anchorDate) % 2.419e+9)/6.048e+8);
+}
+
+whichWeek();
 
 function parseMember(member){
 	let r;
@@ -165,7 +115,7 @@ function parseMember(member){
 
 const port = process.env.PORT || 3000;
 
-var clubAPI = new Array(clubConfig.length);
+var clubAPI = {};
 
 app.use(express.static("public"));
 app.set('view engine', 'ejs');
@@ -175,27 +125,74 @@ app.locals = {
 		let template = fs.readFileSync('./public/functions/memberStat.ejs', 'utf-8');
 		return ejs.render(template, {c: c, text: text});
 	},
+	orgNav: function(org, clubs){
+		let template = fs.readFileSync('./public/functions/orgNav.ejs', 'utf-8');
+		return ejs.render(template, {org: org, clubs: clubs});
+	}
 };
 
 app.get('/', (req, res) => {
-	res.render('pages/club', {club: clubAPI[0].club, members: clubAPI[0].members});
+	res.redirect(`/org/bb`);
+	return;
+	res.render('pages/index');
 });
 
 app.get('/about', (req, res) => {
+	res.redirect(`/org/bb`);
+	return;
 	res.render('pages/about');
 });
 
 app.get('/club/:club', async (req, res) => {
 	let {club} = req.params;
-	for (let i = 0; i < clubConfig.length; ++i){
-		if (club == clubConfig[i].tag){
-			res.render('pages/club', {club: clubAPI[i].club, members: clubAPI[i].members});
-			return;
-		}
+	if (club in clubConfig){
+		res.render('pages/club', {club: clubAPI[club].club, members: clubAPI[club].members});
+		return;
 	}
 
 	res.end(`No club with tag #${club} found`);
 });
+
+app.get('/org/:org', async (req, res) => {
+	let {org} = req.params;
+	org = org.toLowerCase();
+	if (org in orgConfig){
+		let main = orgConfig[org].main;
+		let clubs = [];
+		for (let i = 0; i < orgConfig[org].clubs.length; ++i){
+			let c = orgConfig[org].clubs[i];
+			clubs.push([c, clubAPI[c].club.name]);
+		}
+		
+		res.render('pages/org', {org: {main: main, name: orgConfig[org].name}, clubs: clubs, club: clubAPI[main].club, members: clubAPI[main].members});
+		return;
+	}
+
+	res.end(`No organization with name ${org} found`);
+});
+
+app.get('/org/:org/:club', async (req, res) => {
+	let {org, club} = req.params;
+	org = org.toLowerCase();
+	club = club.toUpperCase();
+	if (org in orgConfig){
+		if (orgConfig[org].clubs.includes(club)){
+			let main = orgConfig[org].main;
+			let clubs = [];
+			for (let i = 0; i < orgConfig[org].clubs.length; ++i){
+				let c = orgConfig[org].clubs[i];
+				clubs.push([c, clubAPI[c].club.name]);
+			}
+			res.render('pages/org', {org: {main: main, name: orgConfig[org].name}, clubs: clubs, club: clubAPI[club].club, members: clubAPI[club].members});
+		} else {
+			res.redirect(`/org/${org}`);
+		}
+		return;
+	}
+
+	res.end(`No organization with name ${org} found`);
+});
+
 
 app.get('*', function(req, res) {
     res.redirect('/');
@@ -309,15 +306,10 @@ async function postData(club){
 			return b.total - a.total;
 		});
 
-		for (let i = 0; i < clubConfig.length; ++i){
-			if (club == clubConfig[i].tag){
-				clubAPI[i] = {
-					club: c,
-					members: members
-				};
-				break;
-			}
-		}
+		clubAPI[club] = {
+			club: c,
+			members: members
+		};
 	} catch(e) {
 		console.log("ERROR (postData): " + e);
 	} finally {
@@ -327,7 +319,7 @@ async function postData(club){
 
 (async ()=> {
 	let promiseArray = [];
-	for (let i = 0; i < clubConfig.length; ++i){
+	for (let i in clubConfig){
 		promiseArray.push(postData(clubConfig[i].tag));
 	}
 
@@ -439,19 +431,13 @@ async function setMembers(members, club){
 
 async function update(club, proxy, socks=false){
 	let proxyAgent = socks ? new socksProxyAgent(proxy): new httpsProxyAgent(proxy);
-	let clubUrl, token;
+	let clubUrl = apiURL + club;
+	let token;
 
-	let exists = false;
-	for (let i = 0; i < clubConfig.length; ++i){
-		if (club == clubConfig[i].tag){
-			clubUrl = apiURL + club;
-			token = clubConfig[i].token;
-			exists = true;
-			break;
-		}
+	if (club in clubConfig){
+		token = clubConfig[club].token;
 	}
-
-	if (!exists){
+	else {
 		console.log(`ERROR (update): No club of name ${club} exists`);
 		return;
 	}
@@ -605,7 +591,7 @@ async function trophyLeagueReset(club){
 /**
 (async () => {
 	let promiseArray = [];
-	for (let i = 0; i < clubConfig.length; ++i){
+	for (let i in clubConfig){
 		promiseArray.push(trophyLeagueReset(clubConfig[i].tag));
 	}
 
@@ -615,16 +601,16 @@ async function trophyLeagueReset(club){
 
 if (process.env.PRODUCTION === "true"){
 	/** Normal Updates **/
-	for (let i = 0; i < clubConfig.length; ++i){
+	for (let i in clubConfig){
 		cron.schedule(clubConfig[i].schedule, async ()=>{
-			await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks);
+			await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? true);
 		});
 	}
 
 	cron.schedule('50 23 * * SUN', async ()=>{
 		let promiseArray = [];
-		for (let i = 0; i < clubConfig.length; ++i){
-			promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks));
+		for (let i in clubConfig){
+			promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? true));
 		}
 
 		await Promise.all(promiseArray);
@@ -632,7 +618,7 @@ if (process.env.PRODUCTION === "true"){
 
 	cron.schedule('55 23 * * SUN', async ()=>{
 		let promiseArray = [];
-		for (let i = 0; i < clubConfig.length; ++i){
+		for (let i in clubConfig){
 			promiseArray.push(reset(clubConfig[i].tag));
 		}
 
@@ -641,7 +627,7 @@ if (process.env.PRODUCTION === "true"){
 
 	cron.schedule('58 23 * * SUN', async ()=>{
 		let promiseArray = [];
-		for (let i = 0; i < clubConfig.length; ++i){
+		for (let i in clubConfig){
 			promiseArray.push(deleteResults(clubConfig[i].tag));
 		}
 

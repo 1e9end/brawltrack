@@ -3,11 +3,17 @@
 <head>
     <%- include('../partials/head.ejs') %>
     <link rel="stylesheet" href="/clubStyle.css" type = "text/css">
+    <script>
+        function changeClub(){
+            let tag = document.getElementById("club-selector-tag").value;
+            window.location.replace(`https://brawltrack.com/org/${window.location.pathname.split('/')[2]}/` + tag);
+        }
+    </script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4232675512222483"
-     crossorigin="anonymous"></script>
+    crossorigin="anonymous"></script>
 </head>
 <body>
-    <%- include('../partials/navbar.ejs') %>
+    <%- orgNav(org, clubs); %>
     <%- include('../partials/displayClub.ejs') %>
 </body>
 </html>

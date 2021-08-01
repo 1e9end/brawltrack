@@ -164,7 +164,7 @@ app.get('/org/:org', async (req, res) => {
 			clubs.push([c, clubAPI[c].club.name]);
 		}
 		
-		res.render('pages/org', {org: {main: main, name: orgConfig[org].name}, clubs: clubs, club: clubAPI[main].club, members: clubAPI[main].members});
+		res.render('pages/org', {org: orgConfig[org].name, clubs: clubs, club: clubAPI[main].club, members: clubAPI[main].members});
 		return;
 	}
 
@@ -177,13 +177,12 @@ app.get('/org/:org/:club', async (req, res) => {
 	club = club.toUpperCase();
 	if (org in orgConfig){
 		if (orgConfig[org].clubs.includes(club)){
-			let main = orgConfig[org].main;
 			let clubs = [];
 			for (let i = 0; i < orgConfig[org].clubs.length; ++i){
 				let c = orgConfig[org].clubs[i];
 				clubs.push([c, clubAPI[c].club.name]);
 			}
-			res.render('pages/org', {org: {main: main, name: orgConfig[org].name}, clubs: clubs, club: clubAPI[club].club, members: clubAPI[club].members});
+			res.render('pages/org', {org: orgConfig[org].name, clubs: clubs, club: clubAPI[club].club, members: clubAPI[club].members});
 		} else {
 			res.redirect(`/org/${org}`);
 		}

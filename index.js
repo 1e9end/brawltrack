@@ -24,7 +24,7 @@ const apiURL = "https://api.brawlstars.com/v1/clubs/%23";
 import clubConfig from "./clubConfig.mjs";
 import orgConfig from "./orgConfig.mjs";
 
-function compensation(gains, trophies){
+function adj(gains, trophies){
 	return gains > 0 ? Math.floor(trophies/1000) * 25:0;
 }
 
@@ -93,7 +93,7 @@ function parseMember(member){
 		trophies: member.trophies,
 		stats: [],
 		raw: member.trophies - member.start,
-		total: member.trophies - member.start + compensation(member.trophies - member.start, member.trophies),
+		total: member.trophies - member.start + adj(member.trophies - member.start, member.trophies),
 		icon: member.icon,
 		color: member.nameColor,
 	};
@@ -199,58 +199,56 @@ app.get('*', function(req, res) {
 
 app.listen(port);
 
-function sendMail(members, club, total, clubDetails){
-	let c = "", m = `<table style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">
-	<tr style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
-	
-	let k = ["", clubDetails.name, clubDetails.role, clubDetails.trophies];
-	let last = clubDetails.start;
-	for (let x = 0; x < clubDetails.stats.length; ++x){
-		if (clubDetails.stats[x] == -1){
+function createRow(index, m){
+	let k = [index, m.name, m.role, m.trophies];
+	let last = m.start;
+	for (let x = 0; x < m.stats.length; ++x){
+		if (m.stats[x] == -1){
 			k.push("-")
 			continue;
 		}
-		k.push(clubDetails.stats[x] - last);
-		last = clubDetails.stats[x];
+		k.push(m.stats[x] - last);
+		last = m.stats[x];
 	}
-	k.push(clubDetails.trophies - clubDetails.start, total);
+	return k;
+}
 
-	for (let i = 0; i < k.length; ++i){
-		m += "<td style=\"border: 1px black solid;padding: 5px; border-collapse: collapse;border-spacing: 5px;\">" + k[i] + "</td>";
-		c += k[i] + ",";
-	}	
-	c += `\n`;
-	m += `</tr><tr style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
+function appendRow(row){
+	let c = "", m = `<tr style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
 	
-	for (var i = 0; i < tableValues.length; ++i){
-		m += "<td style=\"border: 1px black solid;padding: 5px; border-collapse: collapse;border-spacing: 5px;\">" + tableValues[i] + "</td>";
-		c += tableValues[i] + ",";
+	// Table header
+	for (var i = 0; i < row.length; ++i){
+		m += "<td style=\"border: 1px black solid;padding: 5px; border-collapse: collapse;border-spacing: 5px;\">" + row[i] + "</td>";
+		c += row[i] + ",";
 	}	
 
 	c += "\n";
 	m += `</tr>`;
-	for (let i = 0; i < members.length; ++i){
-		m += `<tr style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
-		let member = members[i];
-		let k = [i + 1, member.name, member.role, member.trophies];
-		let last = member.start;
-		for (let x = 0; x < member.stats.length; ++x){
-			if (member.stats[x] == -1){
-				k.push("-")
-				continue;
-			}
-			k.push(member.stats[x] - last);
-			last = member.stats[x];
-		}
-		k.push(member.trophies - member.start);
-		k.push(member.trophies - member.start + compensation(member.trophies - member.start, member.trophies));
 
-		for (let x = 0; x < k.length; ++x){
-			c += k[x] + ",";
-			m += `<td style=\"border: 1px black solid;padding: 5px; border-collapse: collapse;border-spacing: 5px;\">${k[x]}</td>`;
-		}
-		c += "\n";
-		m += "</tr>"
+	return [c, m];
+}
+
+function sendMail({club, members}){
+	let c = "", m = `<table style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
+	
+	// Club gains
+	let k = createRow("", club)
+	k.push("RAW: " + club.trophies - club.start, "PUSH: " + total);
+	let clubRow = appendRow(k);
+	c += clubRow[0]; m += clubRow[1];
+	
+	// Table header
+	let headerRow = appendRow(tableValues);
+	c += headerRow[0]; m += headerRow[1];
+
+	// Member Gains
+	for (let i = 0; i < members.length; ++i){
+		let member = members[i];
+		let k = createRow(i + 1, member);
+		k.push(member.trophies - member.start, member.trophies - member.start + adj(member.trophies - member.start, member.trophies));
+
+		let memberRow = appendRow(k);
+		c += memberRow[0]; m += memberRow[1];
 	}
 
 	console.log(c);
@@ -262,15 +260,15 @@ function sendMail(members, club, total, clubDetails){
 		},
 	});
 
-	let mailDetails = {
+	let mailConfig = {
 		from: `Brawltrack Bot <${process.env.EMAIL}>`,
 		bcc: process.env.RECIEVERS,
-		subject: "Weekly Trophy Pushing Results - " + club,
+		subject: "Trophy Gains Results - " + club.name,
 		// text: "",
 		html: m
 	};
 
-	transporter.sendMail(mailDetails, function(error, info){
+	transporter.sendMail(mailConfig, function(error, info){
 		if (error){
 			console.log(error);
 		} else {
@@ -313,6 +311,7 @@ async function postData(club){
 		console.log("ERROR (postData): " + e);
 	} finally {
 		await client.close();
+		return clubAPI[club];
 	}
 }
 
@@ -489,37 +488,11 @@ async function update(club, proxy, socks=false){
 	});
 }
 
-async function reset(club){
-	const client = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
-		console.log(err);
-	});
-	if (!client) {return;}
-	
+async function reset(club){	
 	try {
-		const db = client.db("Brawltrack");
-		let collection = db.collection(club);
+		let c = await postData(club);
 
-		let result = await collection.find({}).toArray();
-
-		let clubDetails;
-		for (let i = 0; i < result.length; ++i){
-			if (result[i].role == "CLUB"){
-				clubDetails = result[i];
-				result.splice(i, 1);
-				break;
-			}
-		}
-
-		result.sort(function (a, b){
-			return (b.trophies - b.start + compensation(b.trophies - b.start, b.trophies)) - (a.trophies - a.start + compensation(a.trophies - a.start, a.trophies));
-		});
-
-		let total = 0;
-		for (let i = 0; i < result.length; ++i){
-			total += result[i].trophies - result[i].start;
-		}
-
-		sendMail(result, club, total, clubDetails);
+		sendMail(c);
 	} catch(e){
 		console.log("ERROR (reset): " + e);
 	} finally {

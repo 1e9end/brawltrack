@@ -231,6 +231,11 @@ function appendRow(row){
 function sendMail({club, members}){
 	let c = "", m = `<table style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
 	
+	let total = 0;
+	for (let i = 0; i < members.length; ++i){
+		total += members[i].trophies - members[i].start;
+	}
+
 	// Club gains
 	let k = createRow("", club)
 	k.push("RAW: " + club.trophies - club.start, "PUSH: " + total);

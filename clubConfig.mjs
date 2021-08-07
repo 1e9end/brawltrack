@@ -56,12 +56,6 @@ export default  {
 		proxySocks: true,
 	},
 	// Mystic Esports
-	"29RC2UR2C": {
-		tag: "29RC2UR2C",
-		schedule: '4 */24 * * *',
-		token: process.env.QUOTAGUARDSTATIC_TOKEN,
-		proxy: process.env.QUOTAGUARDSTATIC_URL,
-	},
 	"2QCJLC89C": {
 		tag: "2QCJLC89C",
 		schedule: '4 */24 * * *',
@@ -85,5 +79,11 @@ export default  {
 		schedule: '4 */24 * * *',
 		token: process.env.QUOTAGUARDSTATIC_TOKEN,
 		proxy: process.env.QUOTAGUARDSTATIC_URL,
-	}
+	},
+	"2QL9J890Y": {
+		tag: "2QL9J890Y",
+		schedule: '4 */24 * * *',
+		token: process.env.QUOTAGUARDSTATIC_TOKEN,
+		proxy: process.env.QUOTAGUARDSTATIC_URL,
+	},
 };

@@ -55,6 +55,35 @@
 #club-type {
     color: #fff;
 }
+#history-toggle-wrapper {
+    padding: 10px;
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+#history-toggle-wrapper > button {
+    font-family: 'Lilita One', sans-serif;
+    font-size: 1em;
+    color: #fff;
+    padding: 10px;
+    border-top:  2px solid black;
+    border-bottom: 2px solid black;
+    transform: skew(-10deg);
+    text-shadow: 0px 2px #000;
+}
+#current-toggle {
+    border-right: 1px solid black;
+    border-left: 2px solid black;
+    background-color: #DF7C3C;
+}
+#previous-toggle {
+    border-left: 1px solid black;
+    border-right: 2px solid black;
+    background-color: #3E393F;
+}
 #leaderboard-wrapper{
     display: block;
     position: relative;
@@ -64,12 +93,15 @@
     overflow-x: auto;
     overflow-y: auto;
 }
-#leaderboard {
+#leaderboard, #history {
     height: calc(100% - 44px);
     overflow-x: auto;
     overflow-y: auto;
     background-color: #2c272c;
     -webkit-overflow-scrolling: touch;
+}
+#history {
+    display: none;
 }
 #leaderboard-header {
     display: flex;
@@ -112,7 +144,7 @@
         border: 1px solid black;
         padding: 4px 0 4px 5px;
     }
-    #leaderboard {
+    #leaderboard, #history {
         width: 1006px;
         overflow-x: initial;
         overflow-y: initial;

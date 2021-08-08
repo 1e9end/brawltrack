@@ -24,6 +24,14 @@
                 <span id = "club-type"><%=club.type.split(/(?=[A-Z])/).join(" ").toUpperCase()%></span>
             </div>
         </div>
+        <div id = "history-toggle-wrapper">
+            <button id = "current-toggle" onclick="toggleHistory(0)">
+                <span>Current Week</span>
+            </button>
+            <button id = "previous-toggle" onclick="toggleHistory(1)">
+                <span>Previous Week</span>
+            </button>
+        </div>
     </div>
     <div id = "leaderboard-wrapper">
         <div id = "leaderboard-header">
@@ -67,6 +75,28 @@
         <div id = "leaderboard">
             <%  for (var i = 0; i < members.length; ++i){ 
                 var member = members[i]; %>
+                <div class = "member">
+                    <%- memberStat("member-rank", i + 1); %>
+                    <div class = "member-icon-wrapper"><img class = "member-icon" src = "https://cdn.brawltrack.com/profile/<%=member.icon%>.png"></div>
+                    <div class = "member-name-wrapper">
+                        <div class = "member-name" style = "color: #<%= member.color.substring(4) %>">
+                            <span><%= member.name %></span>
+                        </div>
+                        <%- memberStat("member-role", member.role); %>
+                    </div>
+                    <%- memberStat("member-stats", member.trophies); %>
+                    <% for (var x = 0; x < member.stats.length; ++x){ %>
+                        <%- memberStat("member-stats", member.stats[x]); %>
+                    <% } %>
+                    
+                    <%- memberStat("member-stats", member.raw); %>
+                    <%- memberStat("member-stats", member.total); %>
+                </div>
+            <% } %>
+        </div>
+        <div id = "history">
+            <%  for (var i = 0; i < history.length; ++i){ 
+                var member = history[i]; %>
                 <div class = "member">
                     <%- memberStat("member-rank", i + 1); %>
                     <div class = "member-icon-wrapper"><img class = "member-icon" src = "https://cdn.brawltrack.com/profile/<%=member.icon%>.png"></div>

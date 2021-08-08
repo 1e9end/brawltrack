@@ -146,7 +146,7 @@ app.get('/about', (req, res) => {
 app.get('/club/:club', async (req, res) => {
 	let {club} = req.params;
 	if (club in clubConfig){
-		res.render('pages/club', {club: clubAPI[club].club, members: clubAPI[club].members});
+		res.render('pages/club', clubAPI[club]);
 		return;
 	}
 
@@ -164,7 +164,7 @@ app.get('/org/:org', async (req, res) => {
 			clubs.push([c, clubAPI[c].club.name]);
 		}
 		
-		res.render('pages/org', {org: orgConfig[org].name, clubs: clubs, club: clubAPI[main].club, members: clubAPI[main].members});
+		res.render('pages/org', {org: orgConfig[org].name, clubs: clubs, club: clubAPI[main].club, members: clubAPI[main].members, history: clubAPI[main].history});
 		return;
 	}
 
@@ -182,7 +182,7 @@ app.get('/org/:org/:club', async (req, res) => {
 				let c = orgConfig[org].clubs[i];
 				clubs.push([c, clubAPI[c].club.name]);
 			}
-			res.render('pages/org', {org: orgConfig[org].name, clubs: clubs, club: clubAPI[club].club, members: clubAPI[club].members});
+			res.render('pages/org', {org: orgConfig[org].name, clubs: clubs, club: clubAPI[club].club, members: clubAPI[club].members, history: clubAPI[club].history});
 		} else {
 			res.redirect(`/org/${org}`);
 		}
@@ -308,9 +308,28 @@ async function postData(club){
 			return b.total - a.total;
 		});
 
+		const hdb = client.db("BrawltrackHistory");
+		let hcollection = hdb.collection(club);
+
+		let history = await hcollection.find({}).toArray();
+		for (let i = 0; i < history.length; ++i){
+			if (history[i].role == "CLUB"){
+				history.splice(i, 1);
+				--i;
+				continue;
+			}
+
+			history[i] = parseMember(history[i]);
+		}
+
+		history.sort((a, b) => {
+			return b.total - a.total;
+		});
+
 		clubAPI[club] = {
 			club: c,
-			members: members
+			members: members,
+			history: history
 		};
 	} catch(e) {
 		console.log("ERROR (postData): " + e);
@@ -514,12 +533,19 @@ async function deleteResults(club){
 	try {
 		const db = client.db("Brawltrack");
 		let collection = db.collection(club);
+		
+		let result = await collection.find({}).toArray();
 
+		const hdb = client.db("BrawltrackHistory");
+		let hcollection = hdb.collection(club);
+
+		await hcollection.deleteMany({});
+		await hcollection.insertMany(result);
 		await collection.deleteMany({});
 	} catch(e){
 		console.log("ERROR (deleteResults): " + e);
 	} finally {
-		console.log("Deleted all docs in the " + club + " MongoDB collection");
+		console.log("Deleted all docs and added to history in the " + club + " MongoDB collection");
 		await client.close();
 	}
 }
@@ -566,7 +592,8 @@ async function trophyLeagueReset(club){
 }
 
 /**
-(async () => {
+ * 
+(async () => {"2QL9J890Y",
 	let promiseArray = [];
 	for (let i in clubConfig){
 		promiseArray.push(trophyLeagueReset(clubConfig[i].tag));

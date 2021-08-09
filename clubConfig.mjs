@@ -46,7 +46,6 @@ export default  {
 		schedule: '3 */24 * * *',
 		token: process.env.QUOTAGUARDSTATIC_TOKEN,
 		proxy: process.env.QUOTAGUARDSTATIC_URL,
-		proxySocks: true,
 	},
 	"QCUJRG80": {
 		tag: "QCUJRG80",

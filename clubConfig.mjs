@@ -73,8 +73,8 @@ export default  {
 		token: process.env.QUOTAGUARDSTATIC_TOKEN,
 		proxy: process.env.QUOTAGUARDSTATIC_URL,
 	},
-	"29JYLJ8JL": {
-		tag: "29JYLJ8JL",
+	"2YV229JRC": {
+		tag: "2YV229JRC",
 		schedule: '4 */24 * * *',
 		token: process.env.QUOTAGUARDSTATIC_TOKEN,
 		proxy: process.env.QUOTAGUARDSTATIC_URL,

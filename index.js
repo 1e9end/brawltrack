@@ -66,8 +66,6 @@ function whichWeek(){
 	return Math.floor(((now - anchorDate) % 2.419e+9)/6.048e+8);
 }
 
-whichWeek();
-
 function parseMember(member){
 	let r;
 	switch(member.role){
@@ -345,7 +343,12 @@ async function postData(club){
 		promiseArray.push(postData(clubConfig[i].tag));
 	}
 
-	await Promise.all(promiseArray);
+	try {
+		await Promise.all(promiseArray);
+	} finally {
+		console.log("Bootstrapped ClubAPI");
+	}
+	
 })();
 
 async function setMembers(members, club){
@@ -591,9 +594,19 @@ async function trophyLeagueReset(club){
 	}
 }
 
+(async () => {
+	let club = "2YV229JRC";
+	await update(clubConfig[club].tag, clubConfig[club].proxy, clubConfig[club].proxySocks ?? false);
+})();
+
 /**
  * 
-(async () => {"2QL9J890Y",
+(async () => {
+	let club = "";
+	await update(clubConfig[club].tag, clubConfig[club].proxy, clubConfig[club].proxySocks ?? false);
+})();
+
+(async () => {
 	let promiseArray = [];
 	for (let i in clubConfig){
 		promiseArray.push(trophyLeagueReset(clubConfig[i].tag));

@@ -10,6 +10,6 @@ export default {
     "mysticesports": {
         "name": "Mystic Esports",
         "main": "2QCJLC89C",
-        "clubs": ["2QCJLC89C", "29YR888YR", "V8R82YRY", "29JYLJ8JL", "2QL9J890Y"]
+        "clubs": ["2QCJLC89C", "29YR888YR", "V8R82YRY", "2YV229JRC", "2QL9J890Y"]
     }
 };

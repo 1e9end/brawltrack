@@ -3,6 +3,9 @@ body{
     background-color: #3b353b;
     font-family: 'Lilita One', sans-serif;
     margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 #header{
     background: #000;
@@ -79,4 +82,25 @@ body{
     -ms-transform: translateY(-50%);
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
+}
+
+#footer {
+    margin-top: auto;
+    left: 0;
+    width: 100vw;
+    text-align: center;
+    padding: 5px 0;
+    background-color: #2C272C;
+    color: #fff;
+}
+
+#footer > span{
+    display: inline-block;
+}
+
+a {
+    color: #1BA5F5;
+}
+a:link, a:visited, a:hover, a:active{
+    text-decoration: none;
 }

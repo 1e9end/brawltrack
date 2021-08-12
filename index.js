@@ -214,7 +214,6 @@ function createRow(index, m){
 function appendRow(row){
 	let c = "", m = `<tr style=\"border: 1px black solid;border-collapse: collapse;border-spacing: 5px;\">`;
 	
-	// Table header
 	for (var i = 0; i < row.length; ++i){
 		m += "<td style=\"border: 1px black solid;padding: 5px; border-collapse: collapse;border-spacing: 5px;\">" + row[i] + "</td>";
 		c += row[i] + ",";
@@ -478,7 +477,6 @@ async function update(club, proxy, socks=false){
 		let clubInfo = [];
 		let members = res.members;
 
-		// Transform object property names to strings for JSON
 		for (let i = 0; i < members.length; ++i){
 			let x = members[i];
 			clubInfo.push({
@@ -594,11 +592,6 @@ async function trophyLeagueReset(club){
 	}
 }
 
-(async () => {
-	let club = "2YV229JRC";
-	await update(clubConfig[club].tag, clubConfig[club].proxy, clubConfig[club].proxySocks ?? false);
-})();
-
 /**
  * 
 (async () => {
@@ -617,7 +610,6 @@ async function trophyLeagueReset(club){
 **/
 
 if (process.env.PRODUCTION === "true"){
-	/** Normal Updates **/
 	for (let i in clubConfig){
 		cron.schedule(clubConfig[i].schedule, async ()=>{
 			await update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? false);

@@ -40,15 +40,8 @@ export default  {
 		proxy: process.env.FIXIE_SOCKS_HOST,
 		proxySocks: true,
 	},
-	// Ally
-	"28YRVG90P": {
-		tag: "28YRVG90P",
-		schedule: '3 */24 * * *',
-		token: process.env.QUOTAGUARDSTATIC_TOKEN,
-		proxy: process.env.QUOTAGUARDSTATIC_URL,
-	},
-	"QCUJRG80": {
-		tag: "QCUJRG80",
+	"880V28RV": {
+		tag: "880V28RV",
 		schedule: '3 */24 * * *',
 		token: process.env.FIXIE_SOCKS_TOKEN,
 		proxy: process.env.FIXIE_SOCKS_HOST,

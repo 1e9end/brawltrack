@@ -5,7 +5,7 @@ export default {
     "bb": {
         "name": "BB Family",
         "main": "28GYUQJ9Q",
-        "clubs": ["28GYUQJ9Q", "C9Y29P8V", "YQ9JYR2Q", "2PQLCVJYC", "2Q8RLQGJU", "2LGP82UGV", "28YRVG90P", "QCUJRG80"]
+        "clubs": ["28GYUQJ9Q", "C9Y29P8V", "YQ9JYR2Q", "2PQLCVJYC", "2Q8RLQGJU", "2LGP82UGV", "880V28RV"]
     },
     "mysticesports": {
         "name": "Mystic Esports",

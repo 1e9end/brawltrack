@@ -143,7 +143,7 @@ app.get('/about', (req, res) => {
 
 app.get('/club/:club', async (req, res) => {
 	let {club} = req.params;
-	if (club in clubConfig){
+	if (club in clubAPI){
 		res.render('pages/club', clubAPI[club]);
 		return;
 	}
@@ -159,7 +159,9 @@ app.get('/org/:org', async (req, res) => {
 		let clubs = [];
 		for (let i = 0; i < orgConfig[org].clubs.length; ++i){
 			let c = orgConfig[org].clubs[i];
-			clubs.push([c, clubAPI[c].club.name]);
+			if (c in clubAPI){
+				clubs.push([c, clubAPI[c].club.name]);
+			}
 		}
 		
 		res.render('pages/org', {org: orgConfig[org].name, clubs: clubs, club: clubAPI[main].club, members: clubAPI[main].members, history: clubAPI[main].history});
@@ -178,7 +180,9 @@ app.get('/org/:org/:club', async (req, res) => {
 			let clubs = [];
 			for (let i = 0; i < orgConfig[org].clubs.length; ++i){
 				let c = orgConfig[org].clubs[i];
-				clubs.push([c, clubAPI[c].club.name]);
+				if (c in clubAPI){
+					clubs.push([c, clubAPI[c].club.name]);
+				}
 			}
 			res.render('pages/org', {org: orgConfig[org].name, clubs: clubs, club: clubAPI[club].club, members: clubAPI[club].members, history: clubAPI[club].history});
 		} else {
@@ -345,9 +349,8 @@ async function postData(club){
 	try {
 		await Promise.all(promiseArray);
 	} finally {
-		console.log("Bootstrapped ClubAPI");
+		console.log("Initialized ClubAPI");
 	}
-	
 })();
 
 async function setMembers(members, club){

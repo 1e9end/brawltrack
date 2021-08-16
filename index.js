@@ -25,7 +25,7 @@ import clubConfig from "./clubConfig.mjs";
 import orgConfig from "./orgConfig.mjs";
 
 function adj(gains, trophies){
-	return gains > 0 ? Math.floor(trophies/1000) * 25:0;
+	return gains > 0 ? Math.floor(trophies/1000) * 50:0;
 }
 
 function tally(gains, trophies){
@@ -61,9 +61,22 @@ function whichDay(){
 }
 
 function whichWeek(){
-	let now = new Date(2021, 7, 16, 8, 0, 0);
+	let d = new Date();
+	d.setMinutes(d.getMinutes() - 30);
+	d = d.getTime();
+
+	let n = new Date();
+	n = n.getTime();
+	
 	let anchorDate = new Date(Date.UTC(2021, 6, 26, 8, 0, 0));
-	return Math.floor(((now - anchorDate) % 2.419e+9)/6.048e+8);
+	let x = Math.floor(((d - anchorDate) % 2.419e+9)/6.048e+8);
+	let y = Math.floor(((n - anchorDate) % 2.419e+9)/6.048e+8);
+
+	if (y == 0){
+		return y;
+	}
+
+	return x;
 }
 
 function parseMember(member){
@@ -353,14 +366,14 @@ async function postData(club){
 	}
 })();
 
-async function setMembers(members, club){
+async function setMembers(members, club, init=false){
 	const client = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
 		console.log(err);
 	});
 	if (!client) {return;}
 
 	// Day of the Week
-	let d = whichDay();
+	let w = whichWeek();
 	
 	try {
 		const db = client.db("Brawltrack");
@@ -375,6 +388,7 @@ async function setMembers(members, club){
 		}
 
 		let memberExist = await Promise.all(memberExistPromise);
+		let initialize = (!init && collection.countDocuments({}) == 0) ? true: false;
 
 		for (let i = 0; i < members.length; ++i){
 			let member = members[i];
@@ -402,7 +416,11 @@ async function setMembers(members, club){
 						icon: member.icon,
 					};
 				}
-				obj[`stats.${d - 1}`] = member.trophies;
+				obj[`stats.${w}`] = member.trophies;
+				if (!isClub && member.trophyReset && member.trophies < member.start){
+					obj[`stats.${w}`] = member.start;
+					obj[`trophyReset`] = false;
+				}
 
 				promiseArray.push(collection.updateOne(filter, { $set: obj }));
 			}
@@ -432,12 +450,13 @@ async function setMembers(members, club){
 						role: member.role, 
 						nameColor: member.nameColor,
 						icon: member.icon,
+						trophyReset: initialize,
 						stats: []
 					};
 				}
 
-				for (let i = 0; i < 7; ++i){
-					if (i < d){
+				for (let i = 0; i < 4; ++i){
+					if (i <= d){
 						obj.stats.push(member.trophies);
 						continue;
 					}
@@ -456,7 +475,7 @@ async function setMembers(members, club){
 	}
 }
 
-async function update(club, proxy, socks=false){
+async function update(club, proxy, socks=false, init=false){
 	let proxyAgent = socks ? new socksProxyAgent(proxy): new httpsProxyAgent(proxy);
 	let clubUrl = apiURL + club;
 	let token;
@@ -505,7 +524,7 @@ async function update(club, proxy, socks=false){
 
 		clubInfo.push(clubData);
 		try {
-	 		await setMembers(clubInfo, club);
+	 		await setMembers(clubInfo, club, init);
 		} finally {
 			console.log("Updated members for " + club);
 		}
@@ -514,18 +533,6 @@ async function update(club, proxy, socks=false){
 	}).catch(e => {
 		console.log(e);
 	});
-}
-
-async function reset(club){	
-	try {
-		let c = await postData(club);
-
-		sendMail(c);
-	} catch(e){
-		console.log("ERROR (reset): " + e);
-	} finally {
-		await client.close();
-	}
 }
 
 async function deleteResults(club){
@@ -599,7 +606,7 @@ async function trophyLeagueReset(club){
  * 
 (async () => {
 	let club = "";
-	await update(clubConfig[club].tag, clubConfig[club].proxy, clubConfig[club].proxySocks ?? false);
+	await update(clubConfig[club].tag, clubConfig[club].proxy, clubConfig[club].proxySocks ?? false, true);
 })();
 
 (async () => {
@@ -620,24 +627,9 @@ if (process.env.PRODUCTION === "true"){
 	}
 
 	cron.schedule('50 23 * * SUN', async ()=>{
-		let promiseArray = [];
-		for (let i in clubConfig){
-			promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? false));
+		if (whichWeek() != 3){
+			return;
 		}
-
-		await Promise.all(promiseArray);
-	});
-
-	cron.schedule('55 23 * * SUN', async ()=>{
-		let promiseArray = [];
-		for (let i in clubConfig){
-			promiseArray.push(reset(clubConfig[i].tag));
-		}
-
-		await Promise.all(promiseArray);
-	});
-
-	cron.schedule('58 23 * * SUN', async ()=>{
 		let promiseArray = [];
 		for (let i in clubConfig){
 			promiseArray.push(deleteResults(clubConfig[i].tag));

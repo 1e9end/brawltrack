@@ -24,12 +24,15 @@
                 <span id = "club-type"><%=club.type.split(/(?=[A-Z])/).join(" ").toUpperCase()%></span>
             </div>
         </div>
+        <div id="club-gains-chart-wrapper">
+            <div id="club-gains-chart"></div>
+        </div>
         <div id = "history-toggle-wrapper">
             <button id = "current-toggle" onclick="toggleHistory(0)">
-                <span>Current Week</span>
+                <span>Current Season</span>
             </button>
             <button id = "previous-toggle" onclick="toggleHistory(1)">
-                <span>Previous Week</span>
+                <span>Previous Season</span>
             </button>
         </div>
     </div>
@@ -42,28 +45,19 @@
                 <span class = "header-name">MEMBER</span>
             </div>
             <div class = "header-stats">
-                <span>TROPHIES</span>
+                <span>🏆</span>
             </div>
             <div class = "header-stats">
-                <span>MON</span>
+                <span>WEEK 1</span>
             </div>
             <div class = "header-stats">
-                <span>TUE</span>
+                <span>WEEK 2</span>
             </div>
             <div class = "header-stats">
-                <span>WED</span>
+                <span>WEEK 3</span>
             </div>
             <div class = "header-stats">
-                <span>THU</span>
-            </div>
-            <div class = "header-stats">
-                <span>FRI</span>
-            </div>
-            <div class = "header-stats">
-                <span>SAT</span>
-            </div>
-            <div class = "header-stats">
-                <span>SUN</span>
+                <span>WEEK 4</span>
             </div>
             <div class = "header-stats">
                 <span>RAW</span>
@@ -85,7 +79,7 @@
                         <%- memberStat("member-role", member.role); %>
                     </div>
                     <%- memberStat("member-stats", member.trophies); %>
-                    <% for (var x = 0; x < member.stats.length; ++x){ %>
+                    <% for (var x = 0; x < 4; ++x){ %>
                         <%- memberStat("member-stats", member.stats[x]); %>
                     <% } %>
                     

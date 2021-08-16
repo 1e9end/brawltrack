@@ -32,3 +32,5 @@ function toggleHistory(x){
 	document.getElementById("current-toggle").style.backgroundColor = "#DF7C3C";
 	document.getElementById("previous-toggle").style.backgroundColor = "#3E393F";
 }
+
+const statValues = ["Week 1", "Week 2", "Week 3", "Week 4"];

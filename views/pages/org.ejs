@@ -4,13 +4,37 @@
     <%- include('../partials/head.ejs') %>
     <link rel="stylesheet" href="/clubStyle.css" type = "text/css">
     <script>
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            var dataTable = [['Time', 'Trophies'], ['Start', parseInt(`<%= club.start %>`, 10)]];
+            let x = `<%- club.stats %>`.split(',');
+            for (let i = 0; i < x.length; ++i){
+                if (parseInt(x[i], 10) < 0){
+                    break;
+                }
+                dataTable.push([statValues[i], parseInt(x[i], 10)]);
+            }
+
+            var data = google.visualization.arrayToDataTable(dataTable);
+
+            var options = {
+                title: `Total Club Gains: <%= club.trophies - club.start %>`,
+                curveType: 'function',
+                legend: { position: 'none' }
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById("club-gains-chart"));
+
+            chart.draw(data, options);
+        }
+
         function changeClub(){
             let tag = document.getElementById("club-selector-tag").value;
             window.location.replace(`https://brawltrack.com/org/${window.location.pathname.split('/')[2]}/` + tag);
         }
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4232675512222483"
-    crossorigin="anonymous"></script>
 </head>
 <body>
     <%- orgNav(org, clubs); %>

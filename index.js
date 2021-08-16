@@ -167,12 +167,12 @@ app.get('/club/:club', async (req, res) => {
 app.get('/org/:org', async (req, res) => {
 	let {org} = req.params;
 	org = org.toLowerCase();
-	if (org in orgConfig){
+	if (org in orgConfig && clubAPI[orgConfig[org].main].club){
 		let main = orgConfig[org].main;
 		let clubs = [];
 		for (let i = 0; i < orgConfig[org].clubs.length; ++i){
 			let c = orgConfig[org].clubs[i];
-			if (c in clubAPI){
+			if (c in clubAPI && clubAPI[c].club){
 				clubs.push([c, clubAPI[c].club.name]);
 			}
 		}
@@ -189,11 +189,11 @@ app.get('/org/:org/:club', async (req, res) => {
 	org = org.toLowerCase();
 	club = club.toUpperCase();
 	if (org in orgConfig){
-		if (orgConfig[org].clubs.includes(club)){
+		if (orgConfig[org].clubs.includes(club) && clubAPI[club].club){
 			let clubs = [];
 			for (let i = 0; i < orgConfig[org].clubs.length; ++i){
 				let c = orgConfig[org].clubs[i];
-				if (c in clubAPI){
+				if (c in clubAPI && clubAPI[c].club){
 					clubs.push([c, clubAPI[c].club.name]);
 				}
 			}
@@ -456,7 +456,7 @@ async function setMembers(members, club, init=false){
 				}
 
 				for (let i = 0; i < 4; ++i){
-					if (i <= d){
+					if (i <= w){
 						obj.stats.push(member.trophies);
 						continue;
 					}

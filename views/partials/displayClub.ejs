@@ -25,7 +25,7 @@
             </div>
         </div>
         <div id="club-gains-chart-wrapper">
-            <div id="club-gains-chart"></div>
+            <canvas id="club-gains-chart"></canvas>
         </div>
         <div id = "history-toggle-wrapper">
             <button id = "current-toggle" onclick="toggleHistory(0)">
@@ -79,7 +79,7 @@
                         <%- memberStat("member-role", member.role); %>
                     </div>
                     <%- memberStat("member-stats", member.trophies); %>
-                    <% for (var x = 0; x < 4; ++x){ %>
+                    <% for (var x = 0; x < member.stats.length; ++x){ %>
                         <%- memberStat("member-stats", member.stats[x]); %>
                     <% } %>
                     

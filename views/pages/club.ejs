@@ -4,30 +4,61 @@
     <%- include('../partials/head.ejs') %>
     <link rel="stylesheet" href="/clubStyle.css" type = "text/css">
     <script>
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(drawChart);
-
-        function drawChart() {
-            var dataTable = [['Time', 'Trophies'], ['Start', parseInt(`<%= club.start %>`, 10)]];
-            let x = `<%- club.stats %>`.split(',');
-            for (let i = 0; i < x.length; ++i){
-                if (parseInt(x[i], 10) < 0){
-                    break;
+        window.onload = function(){
+            var ctx = document.getElementById('club-gains-chart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ["Start", ...statValues],
+                    datasets: [{
+                        label: 'Trophies',
+                        data: [`<%-club.start %>`, ...`<%- club.stats %>`.split(",")],
+                        backgroundColor: [
+                            'rgba(255, 255, 255, 0.7)',
+                        ],
+                        borderColor: [
+                            '#fff',
+                        ],
+                        color: '#fff',
+                        borderWidth: 1,
+                        fill: {
+                            target: 'origin',
+                            above: 'rgba(44, 39, 44, 0.5)'
+                        }
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            grace: 60000,
+                            ticks: {
+                                color: '#fff',
+                                precision: -4,
+                                stepSize: 20000
+                            },
+                        },
+                        x: {
+                            ticks: {
+                                color: '#fff'
+                            },
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            text: `Trophies:  <%= club.trophies %> │ Net Gains: <%= club.trophies - club.start %>`,
+                            display: true,
+                            color: "#fff",
+                            font: {
+                                size: 14
+                            },
+                            padding: 10
+                        },
+                    },
                 }
-                dataTable.push([statValues[i], parseInt(x[i], 10)]);
-            }
-
-            var data = google.visualization.arrayToDataTable(dataTable);
-
-            var options = {
-                title: `Total Club Gains: <%= club.trophies - club.start %>`,
-                curveType: 'function',
-                legend: { position: 'none' }
-            };
-
-            var chart = new google.visualization.LineChart(document.getElementById("club-gains-chart"));
-
-            chart.draw(data, options);
+            });
         }
     </script>
 </head>

@@ -167,12 +167,16 @@ app.get('/club/:club', async (req, res) => {
 app.get('/org/:org', async (req, res) => {
 	let {org} = req.params;
 	org = org.toLowerCase();
-	if (org in orgConfig && clubAPI[orgConfig[org].main].club){
+	if (org in orgConfig){
 		let main = orgConfig[org].main;
+		if (!(main in clubAPI)){
+			res.end(`No organization with name ${org} found`);
+			return;
+		}
 		let clubs = [];
 		for (let i = 0; i < orgConfig[org].clubs.length; ++i){
 			let c = orgConfig[org].clubs[i];
-			if (c in clubAPI && clubAPI[c].club){
+			if (c in clubAPI){
 				clubs.push([c, clubAPI[c].club.name]);
 			}
 		}
@@ -189,11 +193,11 @@ app.get('/org/:org/:club', async (req, res) => {
 	org = org.toLowerCase();
 	club = club.toUpperCase();
 	if (org in orgConfig){
-		if (orgConfig[org].clubs.includes(club) && clubAPI[club].club){
+		if (orgConfig[org].clubs.includes(club)){
 			let clubs = [];
 			for (let i = 0; i < orgConfig[org].clubs.length; ++i){
 				let c = orgConfig[org].clubs[i];
-				if (c in clubAPI && clubAPI[c].club){
+				if (c in clubAPI){
 					clubs.push([c, clubAPI[c].club.name]);
 				}
 			}
@@ -306,6 +310,9 @@ async function postData(club){
 		let collection = db.collection(club);
 
 		let members = await collection.find({}).toArray();
+		if (members.length == 0){
+			return;
+		}
 		let c;
 		for (let i = 0; i < members.length; ++i){
 			if (members[i].role == "CLUB"){

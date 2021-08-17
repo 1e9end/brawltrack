@@ -639,6 +639,18 @@ if (process.env.PRODUCTION === "true"){
 		}
 		let promiseArray = [];
 		for (let i in clubConfig){
+			promiseArray.push(update(clubConfig[i].tag, clubConfig[i].proxy, clubConfig[i].proxySocks ?? false));
+		}
+
+		await Promise.all(promiseArray);
+	});
+
+	cron.schedule('55 23 * * SUN', async ()=>{
+		if (whichWeek() != 3){
+			return;
+		}
+		let promiseArray = [];
+		for (let i in clubConfig){
 			promiseArray.push(deleteResults(clubConfig[i].tag));
 		}
 

@@ -21,6 +21,10 @@ body{
     font-size: 1.5em;
     float: left;
 }
+#logo > img {
+    margin: auto 0;
+    height: calc(clamp(60px, 8vh, 100px) - 10px);
+}
 #sidenav-toggle {
     float: left;
     width: 25px;

@@ -136,9 +136,9 @@ app.locals = {
 		let template = fs.readFileSync('./public/functions/memberStat.ejs', 'utf-8');
 		return ejs.render(template, {c: c, text: text});
 	},
-	orgNav: function(org, clubs){
+	orgNav: function(org, clubs, club){
 		let template = fs.readFileSync('./public/functions/orgNav.ejs', 'utf-8');
-		return ejs.render(template, {org: org, clubs: clubs});
+		return ejs.render(template, {org: org, clubs: clubs, club: club});
 	}
 };
 

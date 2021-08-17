@@ -12,8 +12,8 @@
             <option value=""><%= org %></option>
             <% 
                 for (var i = 0; i < clubs.length; ++i){
-                let club = clubs[i];%>
-                <option value="<%= club[0] %>"><%= club[1] %></option>
+                let c = clubs[i];%>
+                <option value="<%= c[0] %>" <% if (c[0] == club.tag) { %> selected="selected" <% } %>><%= c[1] %></option>
             <% } %>
         </select>
     </div>

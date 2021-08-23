@@ -6,13 +6,21 @@
     <script>
         window.onload = function(){
             var ctx = document.getElementById('club-gains-chart').getContext('2d');
+            var clubData = [`<%-club.start %>`];
+            var originalStats = `<%- club.stats %>`.split(",");
+            for (let i = 0; i < originalStats.length; ++i){
+                if (originalStats[i] == "-1"){
+                    break;
+                }
+                clubData.push(originalStats[i]);
+            }
             var myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: ["Start", ...statValues],
                     datasets: [{
                         label: 'Trophies',
-                        data: [`<%-club.start %>`, ...`<%- club.stats %>`.split(",")],
+                        data: clubData,
                         backgroundColor: [
                             'rgba(255, 255, 255, 0.7)',
                         ],

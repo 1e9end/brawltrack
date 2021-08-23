@@ -395,7 +395,7 @@ async function setMembers(members, club, init=false){
 		}
 
 		let memberExist = await Promise.all(memberExistPromise);
-		let initialize = (!init && collection.countDocuments({}) == 0) ? true: false;
+		let initialize = (!init && await collection.countDocuments({}) == 0);
 
 		for (let i = 0; i < members.length; ++i){
 			let member = members[i];
@@ -569,14 +569,12 @@ async function deleteResults(club){
 }
 
 async function trophyLeagueReset(club){
-	let d = new Date().getDay();
-	if (d == 0){
-		d = 7;
-	}
 	const client = await MongoClient.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
 		console.log(err);
 	});
 	if (!client) {return;}
+
+	let w = whichWeek();
 	
 	try {
 		const db = client.db("Brawltrack");
@@ -592,15 +590,14 @@ async function trophyLeagueReset(club){
 			let filter = {tag: member.tag};
 			let obj = {
 				start: member.trophies,
-				stats: member.stats
+				stats: member.stats,
 			};
-			for (let x = 0; x < d; ++x){
+			for (let x = 0; x <= w; ++x){
 				obj.stats[x] = member.trophies;
 			}
 			promiseArray.push(collection.updateOne(filter, { $set: obj }));
-			await Promise.all(promiseArray);
-
 		}
+		await Promise.all(promiseArray);
 	} catch(e){
 		console.log("ERROR (trophyLeagueReset): " + e);
 	} finally {
